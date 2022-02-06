@@ -43,26 +43,26 @@ public class King : Piece
         if (castling == CASTLINGTYPE.WHITE_LEFT)
         {
 
-            Board.ChessBoard[0].ChangePosition(3);
+            Board.Instance.ChessBoard[0].ChangePosition(3);
             base.ChangePosition(2);
 
         }
         else if (castling == CASTLINGTYPE.WHITE_RIGHT)
         {
 
-            Board.ChessBoard[7].ChangePosition(5);
+            Board.Instance.ChessBoard[7].ChangePosition(5);
             base.ChangePosition(6);
 
         }
         else if (castling == CASTLINGTYPE.BLACK_LEFT)
         {
-            Board.ChessBoard[56].ChangePosition(59);
+            Board.Instance.ChessBoard[56].ChangePosition(59);
             base.ChangePosition(58);
         }
         else if (castling == CASTLINGTYPE.BLACK_RIGHT)
         {
 
-            Board.ChessBoard[63].ChangePosition(61);
+            Board.Instance.ChessBoard[63].ChangePosition(61);
             base.ChangePosition(62);
         }
 
@@ -73,13 +73,14 @@ public class King : Piece
         Vector3 forward = CalculateLocalPosition(index) - this.transform.localPosition;
         float cof;
 
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f)
+        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f && 
+               Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0)
         {
 
             cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 3) ? 3 : cof;
+            cof = (cof > 1.5f) ? 1.5f : cof;
 
-            this.transform.Translate(forward * Time.deltaTime * cof * 12.5f);
+            this.transform.Translate(forward * Time.deltaTime * cof * speed);
             yield return null;
 
         }
@@ -105,7 +106,7 @@ public class King : Piece
 
             if (!InsideTheBoard(newIndex)) continue;
 
-            if (Board.ChessBoard[Index + i] == null)
+            if (Board.Instance.ChessBoard[Index + i] == null)
             {
                 if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index))
                 {
@@ -133,7 +134,7 @@ public class King : Piece
                 }
 
             }
-            else if (Board.ChessBoard[Index + i] != null && Board.ChessBoard[Index + i].playerColor != this.playerColor)
+            else if (Board.Instance.ChessBoard[Index + i] != null && Board.Instance.ChessBoard[Index + i].playerColor != this.playerColor)
             {
 
                 if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index))
@@ -174,17 +175,17 @@ public class King : Piece
 
         if (this.playerColor == PlayerColor.WHITE &&
             this.Index == 4 && 
-            Board.ChessBoard[4] != null &&
-            Board.ChessBoard[4].pieceName == PIECENAME.KING &&
+            Board.Instance.ChessBoard[4] != null &&
+            Board.Instance.ChessBoard[4].pieceName == PIECENAME.KING &&
             isFirstMove &&
-            Board.ChessBoard[0] != null &&
-            Board.ChessBoard[0].pieceName == PIECENAME.ROOK &&
-            Board.ChessBoard[0].playerColor == PlayerColor.WHITE &&
-            Board.ChessBoard[0].isFirstMove &&
-            Board.ChessBoard[1] == null &&
-            Board.ChessBoard[2] == null &&
-            Board.ChessBoard[3] == null &&
-            !GameManager.Instance.WhiteChecked
+            Board.Instance.ChessBoard[0] != null &&
+            Board.Instance.ChessBoard[0].pieceName == PIECENAME.ROOK &&
+            Board.Instance.ChessBoard[0].playerColor == PlayerColor.WHITE &&
+            Board.Instance.ChessBoard[0].isFirstMove &&
+            Board.Instance.ChessBoard[1] == null &&
+            Board.Instance.ChessBoard[2] == null &&
+            Board.Instance.ChessBoard[3] == null &&
+            !Board.Instance.WhiteChecked
             )
         {
 
@@ -198,16 +199,16 @@ public class King : Piece
         
         if (this.playerColor == PlayerColor.WHITE &&
             this.Index == 4 &&
-            Board.ChessBoard[4] != null &&
-            Board.ChessBoard[4].pieceName == PIECENAME.KING &&
+            Board.Instance.ChessBoard[4] != null &&
+            Board.Instance.ChessBoard[4].pieceName == PIECENAME.KING &&
             isFirstMove &&
-            Board.ChessBoard[7] != null &&
-            Board.ChessBoard[7].pieceName == PIECENAME.ROOK &&
-            Board.ChessBoard[7].playerColor == PlayerColor.WHITE &&
-            Board.ChessBoard[7].isFirstMove &&
-            Board.ChessBoard[5] == null &&
-            Board.ChessBoard[6] == null &&
-            !GameManager.Instance.WhiteChecked
+            Board.Instance.ChessBoard[7] != null &&
+            Board.Instance.ChessBoard[7].pieceName == PIECENAME.ROOK &&
+            Board.Instance.ChessBoard[7].playerColor == PlayerColor.WHITE &&
+            Board.Instance.ChessBoard[7].isFirstMove &&
+            Board.Instance.ChessBoard[5] == null &&
+            Board.Instance.ChessBoard[6] == null &&
+            !Board.Instance.WhiteChecked
             )
         {
 
@@ -223,17 +224,17 @@ public class King : Piece
 
         if (this.playerColor == PlayerColor.BLACK &&
             this.Index == 60 &&
-            Board.ChessBoard[60] != null &&
-            Board.ChessBoard[60].pieceName == PIECENAME.KING &&
+            Board.Instance.ChessBoard[60] != null &&
+            Board.Instance.ChessBoard[60].pieceName == PIECENAME.KING &&
             isFirstMove &&
-            Board.ChessBoard[56] != null && 
-            Board.ChessBoard[56].pieceName == PIECENAME.ROOK &&
-            Board.ChessBoard[56].playerColor == PlayerColor.BLACK &&
-            Board.ChessBoard[56].isFirstMove &&
-            Board.ChessBoard[57] == null &&
-            Board.ChessBoard[58] == null &&
-            Board.ChessBoard[59] == null &&
-            !GameManager.Instance.BlackChecked
+            Board.Instance.ChessBoard[56] != null && 
+            Board.Instance.ChessBoard[56].pieceName == PIECENAME.ROOK &&
+            Board.Instance.ChessBoard[56].playerColor == PlayerColor.BLACK &&
+            Board.Instance.ChessBoard[56].isFirstMove &&
+            Board.Instance.ChessBoard[57] == null &&
+            Board.Instance.ChessBoard[58] == null &&
+            Board.Instance.ChessBoard[59] == null &&
+            !Board.Instance.BlackChecked
             )
         {
 
@@ -247,16 +248,16 @@ public class King : Piece
 
         if (this.playerColor == PlayerColor.BLACK &&
             this.Index == 60 &&
-            Board.ChessBoard[60] != null &&
-            Board.ChessBoard[60].pieceName == PIECENAME.KING &&
+            Board.Instance.ChessBoard[60] != null &&
+            Board.Instance.ChessBoard[60].pieceName == PIECENAME.KING &&
             isFirstMove &&
-            Board.ChessBoard[63] != null &&
-            Board.ChessBoard[63].pieceName == PIECENAME.ROOK &&
-            Board.ChessBoard[63].playerColor == PlayerColor.BLACK &&
-            Board.ChessBoard[63].isFirstMove &&
-            Board.ChessBoard[61] == null &&
-            Board.ChessBoard[62] == null &&
-            !GameManager.Instance.BlackChecked
+            Board.Instance.ChessBoard[63] != null &&
+            Board.Instance.ChessBoard[63].pieceName == PIECENAME.ROOK &&
+            Board.Instance.ChessBoard[63].playerColor == PlayerColor.BLACK &&
+            Board.Instance.ChessBoard[63].isFirstMove &&
+            Board.Instance.ChessBoard[61] == null &&
+            Board.Instance.ChessBoard[62] == null &&
+            !Board.Instance.BlackChecked
             )
         {
             if (ValidMoves.Find(x => x == 61) == 61) {

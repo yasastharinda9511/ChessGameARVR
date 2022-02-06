@@ -11,12 +11,14 @@ public class Queen : Piece
         Vector3 forward = CalculateLocalPosition(index) - this.transform.localPosition;
         float cof;
 
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f)
+        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f &&
+               Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0
+            )
         {
 
             cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 2.5f) ? 2.5f : cof;
-            this.transform.Translate(forward * Time.deltaTime * cof * 12.5f);
+            cof = (cof > 1.5f) ? 1.5f : cof;
+            this.transform.Translate(forward * Time.deltaTime * cof * speed);
             yield return null;
 
         }
@@ -55,7 +57,7 @@ public class Queen : Piece
             while (InsideTheBoard(index))
             {
 
-                if (Board.ChessBoard[index] == null)
+                if (Board.Instance.ChessBoard[index] == null)
                 {
 
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
@@ -74,7 +76,7 @@ public class Queen : Piece
                     }
 
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor != this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor != this.playerColor))
                 {
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
@@ -88,7 +90,7 @@ public class Queen : Piece
                     }
                     break;
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor == this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
                     break;
                 }
@@ -114,7 +116,7 @@ public class Queen : Piece
             while (InsideTheBoard(index))
             {
 
-                if (Board.ChessBoard[index] == null)
+                if (Board.Instance.ChessBoard[index] == null)
                 {
 
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
@@ -133,7 +135,7 @@ public class Queen : Piece
                     }
 
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor != this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor != this.playerColor))
                 {
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
                     {
@@ -147,7 +149,7 @@ public class Queen : Piece
                     }
                     break;
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor == this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
                     break;
                 }

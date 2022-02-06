@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Piece
   - ValidBox
+  - BlackPawntoQueen
+  - WhitePawntoQueen
   layers:
   - Default
   - TransparentFX

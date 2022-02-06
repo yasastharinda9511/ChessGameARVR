@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.EventSystems;
 
 public abstract class Piece : MonoBehaviour , ICloneable
 {
@@ -30,6 +29,10 @@ public abstract class Piece : MonoBehaviour , ICloneable
 
     public abstract List<int> CalculateValidMoves();
 
+    public static List<Piece> opponentActivePieces;
+
+    protected float speed;
+
     private void Start()
     {
         EleminationStage = (playerColor == PlayerColor.WHITE) ? GameObject.Find("WhiteEliminateStage") : GameObject.Find("BlackEliminateStage");
@@ -37,6 +40,9 @@ public abstract class Piece : MonoBehaviour , ICloneable
         if (EleminationStage == null) Debug.Log("No eleimination stage is found");
 
         ValidMoves = new List<int>();
+        opponentActivePieces = new List<Piece>();
+
+        speed = .5f;
 
     }
     public Vector3 GlobaCoordinates() {
@@ -105,9 +111,9 @@ public abstract class Piece : MonoBehaviour , ICloneable
 
     protected bool CheckSameColorPiece(int index)
     {
-        if (Board.ChessBoard[index] == null) return false;
+        if (Board.Instance.ChessBoard[index] == null) return false;
 
-        bool same = (Board.ChessBoard[index].playerColor == this.playerColor) ? true : false;
+        bool same = (Board.Instance.ChessBoard[index].playerColor == this.playerColor) ? true : false;
 
         return same;
     }
@@ -138,15 +144,7 @@ public abstract class Piece : MonoBehaviour , ICloneable
 
         EleminationStage = (playerColor == PlayerColor.WHITE) ? GameObject.Find("WhiteEliminateStage") : GameObject.Find("BlackEliminateStage");
 
-        if (playerColor == PlayerColor.WHITE)
-        {
-            GameManager.Instance.WhiteActivePieces.Remove(this);
-        }
-        else {
-
-            GameManager.Instance.BlackActivePieces.Remove(this);
-
-        }
+        Board.Instance.ActivePiecesUpdate();
 
         EleminationStage.GetComponent<EliminatePieceorganize>().PushEliminatePiece(this.transform.gameObject);
         Destroy(this);
@@ -157,54 +155,57 @@ public abstract class Piece : MonoBehaviour , ICloneable
 
     public bool KingCheck(int index) {
 
-        Piece originalPiece = (Piece)this.Clone();
+        Piece originalPiece = (Piece)Board.Instance.ChessBoard[Index].Clone();
 
-        Piece goToIndex = (Board.ChessBoard[index] != null ) ? (Piece)Board.ChessBoard[index].Clone() : null ;
+        Piece goToIndex = (Board.Instance.ChessBoard[index] != null ) ? (Piece)Board.Instance.ChessBoard[index].Clone() : null ;
 
-        Board.ChessBoard[originalPiece.Index] = null;
-        Board.ChessBoard[index] = this;
+        Board.Instance.ChessBoard[originalPiece.Index] = null;
+        Board.Instance.ChessBoard[index] = this;
         
-        Board.ChessBoard[index].Index = index;
+        Board.Instance.ChessBoard[index].Index = index;
 
-      
-        int kingIndex = (playerColor == PlayerColor.WHITE) ? GameManager.Instance.WhiteKing.GetComponent<Piece>().Index : GameManager.Instance.BlackKing.GetComponent<Piece>().Index;
+        int kingIndex = (playerColor == PlayerColor.WHITE) ? Board.Instance.WhiteKing.GetComponent<Piece>().Index : Board.Instance.BlackKing.GetComponent<Piece>().Index;
 
-        if (pieceName == PIECENAME.KING) kingIndex = index;
-        //Debug.Log("King Index is :" + kingIndex);
+        if (pieceName == PIECENAME.KING) kingIndex = index; 
 
-        List<Piece> opponentActivePieces = (playerColor == PlayerColor.WHITE) ? GameManager.Instance.BlackActivePieces : GameManager.Instance.WhiteActivePieces;
+        opponentActivePieces = (playerColor == PlayerColor.WHITE) ? Board.Instance.BlackActivePieces :  Board.Instance.WhiteActivePieces;   
+        
+        
 
-        if (goToIndex != null && goToIndex.playerColor != this.playerColor) opponentActivePieces.Remove(goToIndex);  
+        if (goToIndex != null && goToIndex.playerColor != this.playerColor) {
+
+            opponentActivePieces.Remove(opponentActivePieces.Find(x => x.pieceName == goToIndex.pieceName && x.playerColor == goToIndex.playerColor && x.Index == index));
+
+        }  
 
         foreach (Piece piece in opponentActivePieces)
         {
+
             if (piece.CalculateValidMoves().Find(x => x == kingIndex) == kingIndex) {
 
-                Board.ChessBoard[originalPiece.Index] = originalPiece;
-                Board.ChessBoard[index] = goToIndex ;
+                Board.Instance.ChessBoard[originalPiece.Index] = originalPiece;
+                Board.Instance.ChessBoard[index] = goToIndex ;
                 this.Index = originalPiece.Index;
 
-                //Debug.Log("try Index is " + index + " Still checked" + piece.pieceName );
-
+                //UIManager.Instance.DebugBannerUpdate("try Index is " + index + " Still checked checked by " + piece.pieceName);
+                 
                 if (goToIndex != null) {
                     opponentActivePieces.Add(goToIndex);
                 }
-                 
                 return false;
             }
             
 
         }
 
-        Board.ChessBoard[originalPiece.Index] = originalPiece;
-        Board.ChessBoard[index] = goToIndex;
+        Board.Instance.ChessBoard[originalPiece.Index] = originalPiece;
+        Board.Instance.ChessBoard[index] = goToIndex;
         this.Index = originalPiece.Index;
 
         if (goToIndex != null)
         {
             opponentActivePieces.Add(goToIndex);
         }
-
         return true;
 
     }
@@ -212,19 +213,53 @@ public abstract class Piece : MonoBehaviour , ICloneable
     protected void AddIndex(int index) {
 
 
-        if (GameManager.Instance.playerTurn == playerColor && KingCheck(index))
+        if (Board.Instance.playerTurn == playerColor && CheckPinPinMove(index))
         {
-            //Debug.Log(this.pieceName + " Valid Index is : " + index);
-            ValidMoves.Add(index);
+            ValidMoves.Add(index); 
 
         }
-        else if (GameManager.Instance.playerTurn != playerColor)
+        else if (Board.Instance.playerTurn != playerColor)
         {
-
             ValidMoves.Add(index);
         }
     
     
+    }
+
+
+    protected bool CheckPinPinMove(int index) {
+
+        bool val = false;
+        Piece originalPiece;
+        if (Board.Instance.ChessBoard[index] != null) originalPiece = (Piece)Board.Instance.ChessBoard[index].Clone();
+        else originalPiece = null;
+
+        Board.Instance.ChessBoard[index] = (Piece) this.Clone();
+        Board.Instance.ChessBoard[this.Index] = null;
+        int originalIndex = this.Index;
+        Board.Instance.ChessBoard[index].Index = index;
+
+        if (pieceName == PIECENAME.KING && playerColor == PlayerColor.WHITE) Board.Instance.WhiteKingIndex = index;
+        else if (pieceName == PIECENAME.KING && playerColor == PlayerColor.BLACK) Board.Instance.BlackKingIndex = index;
+
+        if (playerColor == PlayerColor.WHITE)
+        {
+
+            val = Board.Instance.IsCheckWhitePlayer();
+        }
+        else {
+
+            val = Board.Instance.IsCheckBlackPlayer();
+        }
+
+        Board.Instance.ChessBoard[index] = originalPiece;
+        Board.Instance.ChessBoard[originalIndex] = this;
+
+        if (pieceName == PIECENAME.KING && playerColor == PlayerColor.WHITE) Board.Instance.WhiteKingIndex = originalIndex;
+        else if (pieceName == PIECENAME.KING && playerColor == PlayerColor.BLACK) Board.Instance.BlackKingIndex = originalIndex;
+
+        return !val;
+
     }
 
     public object Clone()
@@ -235,22 +270,22 @@ public abstract class Piece : MonoBehaviour , ICloneable
     public virtual void ChangePosition(int index) {
 
         MoveCoroute = true;
+        if (Board.Instance.ChessBoard[index] != null){
 
-        if (Board.ChessBoard[index] != null){
-
-            Board.ChessBoard[index].Eliminate();
+            Board.Instance.ChessBoard[index].Eliminate();
 
         }
 
-        Board.ChessBoard[index] = this;
-        Board.ChessBoard[this.Index] = null;
+        Board.Instance.ChessBoard[index] = this;
+        Board.Instance.ChessBoard[this.Index] = null;
         prevIndex = this.Index;
 
-        Board.ChessBoard[index].Index = index;
+        Board.Instance.ChessBoard[index].Index = index;
+
+        if (pieceName == PIECENAME.KING && playerColor == PlayerColor.WHITE) Board.Instance.WhiteKingIndex = index ;
+        else if (pieceName == PIECENAME.KING && playerColor == PlayerColor.BLACK) Board.Instance.BlackKingIndex = index ;
 
         this.transform.gameObject.GetComponent<Piece>().Index = index;
-
-        Debug.Log("@@" + this.pieceName + " " + this.Index );
 
         if (this.isFirstMove) isFirstMove = false;
 

@@ -18,12 +18,13 @@ public class Rook : Piece
         Vector3 forward = CalculateLocalPosition(index) - this.transform.localPosition;
         float cof;
 
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f)
+        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f &&
+            Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0  )
         {
 
             cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 3) ? 3 : cof;
-            this.transform.Translate(forward * Time.deltaTime * cof * 12.5f);
+            cof = (cof > 1.5) ? 1.5f : cof;
+            this.transform.Translate(forward * Time.deltaTime * speed * cof);
             yield return null;
 
         }
@@ -46,13 +47,12 @@ public class Rook : Piece
         int prevIndex;
         foreach (var i in directions)
         {
-            Debug.Log("@" + "Rook " + this.Index);
             index = Index + i;
             prevIndex = Index;
             while (InsideTheBoard(index))
             {
 
-                if (Board.ChessBoard[index] == null)
+                if (Board.Instance.ChessBoard[index] == null)
                 {
 
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
@@ -71,7 +71,7 @@ public class Rook : Piece
                     }
 
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor != this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor != this.playerColor))
                 {
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
                     {
@@ -85,7 +85,7 @@ public class Rook : Piece
                     }
                     break;
                 }
-                else if ((Board.ChessBoard[index] != null && Board.ChessBoard[index].playerColor == this.playerColor))
+                else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
                     break;
                 }

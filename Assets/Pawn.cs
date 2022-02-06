@@ -14,8 +14,6 @@ public class Pawn : Piece
             )
         {
 
-            GameManager.Instance.ActivePieceSelector(this.playerColor, index );
-
         }
 
         MoveCoroute = false;
@@ -27,14 +25,13 @@ public class Pawn : Piece
 
         float cof;
 
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index))> 0.01f ) {
-
-            Debug.Log("Move index is : " + index);
-            Debug.Log("move is caling" + this.pieceName + playerColor);
+        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index))> 0.01f &&
+               Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0  ) 
+        {
 
             cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 2.5f) ? 2.5f : cof;
-            this.transform.Translate(forward * Time.deltaTime * cof * 12.5f);
+            cof = (cof > 1.5f) ? 1.5f : cof;
+            this.transform.Translate(forward * Time.deltaTime * cof * speed);
             yield return null; 
 
         }
@@ -51,7 +48,7 @@ public class Pawn : Piece
 
     void checkSingleDoubleUp()
     {
-        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 8) && Board.ChessBoard[Index + 8] == null && pieceName == PIECENAME.PAWN)
+        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 8) && Board.Instance.ChessBoard[Index + 8] == null && pieceName == PIECENAME.PAWN)
         {
 
             //ValidMoves.Add(Index + 8);
@@ -59,7 +56,7 @@ public class Pawn : Piece
             checkDoubleUp();
 
         }
-        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 8) && Board.ChessBoard[Index - 8] == null && pieceName == PIECENAME.PAWN)
+        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 8) && Board.Instance.ChessBoard[Index - 8] == null && pieceName == PIECENAME.PAWN)
         {
 
             //ValidMoves.Add(Index - 8);
@@ -72,13 +69,13 @@ public class Pawn : Piece
     void checkDoubleUp()
     {
 
-        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 16) && Board.ChessBoard[Index + 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
+        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 16) && Board.Instance.ChessBoard[Index + 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
         {
 
             //ValidMoves.Add(Index + 16);
             AddIndex(Index + 16);
         }
-        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 16) && Board.ChessBoard[Index - 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
+        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 16) && Board.Instance.ChessBoard[Index - 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
         {
 
             //ValidMoves.Add(Index - 16);
@@ -93,19 +90,19 @@ public class Pawn : Piece
 
         if (playerColor == PlayerColor.WHITE && pieceName == PIECENAME.PAWN)
         {
-            if (InsideTheBoard(Index + 7) && Board.ChessBoard[Index + 7] != null && (int)((Index + 7) / 8) == (int)(Index / 8) + 1)
-                if (Board.ChessBoard[Index + 7].playerColor != this.playerColor) AddIndex(Index + 7);//ValidMoves.Add(Index + 7);
-            if (InsideTheBoard(Index + 9)  && Board.ChessBoard[Index + 9] != null && (int)((Index + 9) / 8) == (int)(Index / 8) + 1)
-                if (Board.ChessBoard[Index + 9].playerColor != this.playerColor) AddIndex(Index + 9);//ValidMoves.Add(Index + 9);
+            if (InsideTheBoard(Index + 7) && Board.Instance.ChessBoard[Index + 7] != null && (int)((Index + 7) / 8) == (int)(Index / 8) + 1)
+                if (Board.Instance.ChessBoard[Index + 7].playerColor != this.playerColor) AddIndex(Index + 7);//ValidMoves.Add(Index + 7);
+            if (InsideTheBoard(Index + 9)  && Board.Instance.ChessBoard[Index + 9] != null && (int)((Index + 9) / 8) == (int)(Index / 8) + 1)
+                if (Board.Instance.ChessBoard[Index + 9].playerColor != this.playerColor) AddIndex(Index + 9);//ValidMoves.Add(Index + 9);
 
         }
         else if (playerColor == PlayerColor.BLACK && pieceName == PIECENAME.PAWN)
         {
 
-            if (InsideTheBoard(Index - 7) && Board.ChessBoard[Index - 7] != null && (int)((Index - 7) / 8) + 1 == (int)(Index / 8))
-                if (Board.ChessBoard[Index - 7].playerColor != this.playerColor)  AddIndex(Index - 7);//ValidMoves.Add(Index - 7);
-            if (InsideTheBoard(Index - 9) && Board.ChessBoard[Index - 9] != null && (int)((Index - 9) / 8) + 1 == (int)(Index / 8))
-                if (Board.ChessBoard[Index - 9].playerColor != this.playerColor) AddIndex(Index - 9);//ValidMoves.Add(Index - 9);
+            if (InsideTheBoard(Index - 7) && Board.Instance.ChessBoard[Index - 7] != null && (int)((Index - 7) / 8) + 1 == (int)(Index / 8))
+                if (Board.Instance.ChessBoard[Index - 7].playerColor != this.playerColor)  AddIndex(Index - 7);//ValidMoves.Add(Index - 7);
+            if (InsideTheBoard(Index - 9) && Board.Instance.ChessBoard[Index - 9] != null && (int)((Index - 9) / 8) + 1 == (int)(Index / 8))
+                if (Board.Instance.ChessBoard[Index - 9].playerColor != this.playerColor) AddIndex(Index - 9);//ValidMoves.Add(Index - 9);
 
         }
 

@@ -17,6 +17,10 @@ public class UIManager : MonoBehaviour
     GameObject QueenButton;
     [SerializeField]
     GameObject BoardStatusBanner;
+    [SerializeField]
+    GameObject DebugBanner;
+    [SerializeField]
+    GameObject debugSwitch;
 
     public static UIManager Instance;
 
@@ -56,10 +60,29 @@ public class UIManager : MonoBehaviour
     public void UpdateBoardStatusBanner(string status) 
     {
 
-        if (GameManager.Instance.BlackChecked && GameManager.Instance.status != BOARDSTATUS.BLACK_CHECKMATE) BoardStatusBanner.GetComponent<TextMeshPro>().text = "BLACK CHECK";
-        else if (GameManager.Instance.WhiteChecked && GameManager.Instance.status != BOARDSTATUS.WHITE_CHECKMATE) BoardStatusBanner.GetComponent<TextMeshPro>().text = "WHITE CHECk";
-        else BoardStatusBanner.GetComponent<TextMeshPro>().text = status;
+        //if (GameManager.Instance.BlackChecked && GameManager.Instance.status != BOARDSTATUS.BLACK_CHECKMATE) BoardStatusBanner.GetComponent<TextMeshPro>().text = "BLACK CHECK";
+        //else if (GameManager.Instance.WhiteChecked && GameManager.Instance.status != BOARDSTATUS.WHITE_CHECKMATE) BoardStatusBanner.GetComponent<TextMeshPro>().text = "WHITE CHECk";
+        BoardStatusBanner.GetComponent<TextMeshPro>().text = status;
 
     }
+
+    public void DebugBannerUpdate(string message) {
+        if (!debugSwitch.GetComponent<Toggle>().isOn) return;
+        DebugBanner.GetComponent<TextMeshPro>().color = Color.green;
+        DebugBanner.GetComponent<TextMeshPro>().text += Time.time + " " +  message + "\n";
+
+    }   
+    public void DebugBanneClear() {
+
+        DebugBanner.GetComponent<TextMeshPro>().text = "";
+
+    }
+
+    public void ChangeColor(Color col) {
+
+        DebugBanner.GetComponent<TextMeshPro>().color = col;
+
+    }
+    
 
 }

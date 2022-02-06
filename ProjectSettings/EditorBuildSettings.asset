@@ -4,5 +4,16 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
-  m_configObjects: {}
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Blacksmith's Forge.unity
+    guid: e2e5216ad91d4a64695835a6360c3ac9
+  - enabled: 1
+    path: Assets/Scenes/VRChessMultiPlayer.unity
+    guid: 0d9228ae1ff76234cbaa93142fab9335
+  - enabled: 1
+    path: Assets/Scenes/VRChessAI.unity
+    guid: 0c7901d2850e7f64e9565fdb237f29ab
+  m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: b621781abe6b5894d88c564f9c48bc87, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 04565283252fe234a83f25dfba7ec0d3, type: 2}

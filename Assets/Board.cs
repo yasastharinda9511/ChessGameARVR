@@ -1,4 +1,4 @@
-using System;
+ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +6,7 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
 
+    public static Board Instance;
     private const float BOARD_CELL_SIZE = 1.5f;
 
     private Vector3 WHITE_START_POINT;
@@ -22,34 +23,42 @@ public class Board : MonoBehaviour
     private GameObject validBox;
     public static Vector3 Origin { get; set; } = new Vector3(0,0,0);
 
-    public static Piece[] ChessBoard = new Piece[64];
-    public Piece[] ChessBoard2 = ChessBoard;
+    public Piece[] ChessBoard = new Piece[64];
 
+    public GameObject WhiteKing { get; set; }
+    public GameObject BlackKing { get; set; }
+
+    public int WhiteKingIndex { get; set; }
+
+    public int BlackKingIndex { get; set; }
+
+    public List<Piece> WhiteActivePieces { get; set; }
+    public List<Piece> BlackActivePieces { get; set; }
+
+
+    public bool BlackChecked { get; set; }
+    public bool WhiteChecked { get; set; }
+
+    public PlayerColor playerTurn;
 
     // Start is called before the first frame update
-
-    public void OrganizeBoard() {
-
-        while (GameManager.Instance == null) ;
-        PieceOrganizeWhite();
-        PieceOrganizeBlack();
-        GameManagerSetup();
-
-    }
-    public void GameManagerSetup()
+    public void Awake()
     {
-        GameManager.Instance.WhiteActivePieces.Clear();
-        GameManager.Instance.BlackActivePieces.Clear();
-        foreach (var i in ChessBoard) 
-        {
-            if (i == null) continue;
+        if(Instance == null) Instance = this;
+    }
 
-            if (i.playerColor == PlayerColor.WHITE) GameManager.Instance.WhiteActivePieces.Add(i);
-            else GameManager.Instance.BlackActivePieces.Add(i);
-        }
+    public void OrganizeBoard()
+    {
 
-        Debug.Log("$ White active pieces : " + GameManager.Instance.WhiteActivePieces.Count);
-        Debug.Log("$ Black active pieces : " + GameManager.Instance.BlackActivePieces.Count);
+        BlackChecked = false;
+        WhiteChecked = false;
+
+        WhiteActivePieces = new List<Piece>();
+        BlackActivePieces = new List<Piece>();
+
+        this.PieceOrganizeWhite();
+        this.PieceOrganizeBlack();
+        this.ActivePiecesUpdate();
     }
 
     void PieceOrganizeWhite() {
@@ -71,6 +80,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.PAWN],this.gameObject.transform);
                     go.transform.localPosition = offset +  new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhitePawn" + r.ToString();
                     ChessBoard[ 8*(1 - i) + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }
@@ -78,6 +88,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.ROOK],this.gameObject.transform);
                     go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhiteROOK" + r.ToString();
                     ChessBoard[8 *(1 - i) + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }
@@ -85,6 +96,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.KNIGHT], this.gameObject.transform);
                     go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhiteKNIGHT" + r.ToString();
                     ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }
@@ -92,6 +104,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.BISHOP], this.gameObject.transform);
                     go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhiteBISHOP" + r.ToString();
                     ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }
@@ -99,6 +112,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.QUEEN], this.gameObject.transform);
                     go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhiteQUEEN" + r.ToString();
                     ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }
@@ -106,8 +120,11 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.KING] , this.gameObject.transform);
                     go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "WhiteKING" + r.ToString();
                     ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
-                    GameManager.Instance.WhiteKing = go;
+                    WhiteKingIndex = 4;
+                    this.WhiteKing = go;
+
                     go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
                 }   
             }
@@ -130,7 +147,7 @@ public class Board : MonoBehaviour
                     go.transform.localPosition = offset +  new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
                     ChessBoard[ 48 + 8 * i + r] = go.GetComponent<Piece>();
 
-                    go.transform.gameObject.name = "Pawn" + r.ToString();
+                    go.transform.gameObject.name = "BlackPawn" + r.ToString();
 
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
                 }
@@ -138,6 +155,7 @@ public class Board : MonoBehaviour
                 {
                     go = Instantiate(pieceList[(int)PIECENAME.ROOK],this.gameObject.transform);
                     go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
+                    go.transform.name = "BlackROOK" + r.ToString();
                     ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
                 }
@@ -146,6 +164,7 @@ public class Board : MonoBehaviour
                     go = Instantiate(pieceList[(int)PIECENAME.KNIGHT], this.gameObject.transform);
                     go.transform.localPosition = offset + new Vector3(-1 *BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
                     ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
+                    go.transform.name = "BlackKNIGHT" + r.ToString();
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
                 }
                 else if (i == 1 && (r == 2 || r == 5))
@@ -153,6 +172,7 @@ public class Board : MonoBehaviour
                     go = Instantiate(pieceList[(int)PIECENAME.BISHOP], this.gameObject.transform);
                     go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
                     ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
+                    go.transform.name = "BlackBISHOP" + r.ToString();
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
                 }
                 else if (i == 1 && r == 3)
@@ -160,6 +180,7 @@ public class Board : MonoBehaviour
                     go = Instantiate(pieceList[(int)PIECENAME.QUEEN], this.gameObject.transform);
                     go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
                     ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
+                    go.transform.name = "BlackQUEEN" + r.ToString();
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
                 }
                 else if (i == 1 && r == 4) 
@@ -167,7 +188,11 @@ public class Board : MonoBehaviour
                     go = Instantiate(pieceList[(int)PIECENAME.KING] , this.gameObject.transform);
                     go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
                     ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    GameManager.Instance.BlackKing = go;
+                    go.transform.name = "BlackKING" + r.ToString();
+                    this.BlackKing = go;
+
+                    BlackKingIndex = 48 + 8 * i + r;
+
                     go.GetComponent<Piece>().Index = 48 + 8 * i + r;
 
                 }
@@ -187,16 +212,16 @@ public class Board : MonoBehaviour
         return new Vector3(5.25f, 0, -5.25f) + new Vector3((int)(index/8) * -1.5f , 0.1f , (int)(index % 8) * 1.5f);
         
     }
-
     public Vector3 CalculateGlobalPosition(int index) {
 
         return transform.TransformPoint(CalculateLocalPosition(1));
     
     }
-
     public void OnePieceOrganize(PlayerColor color , PIECENAME piece , int index) {
 
         if (ChessBoard[index] != null) ChessBoard[index].Eliminate();
+
+        Debug.Log("pawn to queen is : " + (int) piece);
 
         GameObject prefab= (color == PlayerColor.WHITE) ? WHITEPIECES[(int)piece] : BLACKPIECES[(int)piece];
         GameObject go = Instantiate(prefab, this.gameObject.transform);
@@ -206,5 +231,112 @@ public class Board : MonoBehaviour
         ChessBoard[index] = go.GetComponent<Piece>();
 
     }
+
+    public void ActivePiecesUpdate()
+    {
+        this.WhiteActivePieces.Clear();
+        this.BlackActivePieces.Clear();
+        foreach (var i in ChessBoard)
+        {
+            if (i == null) continue;
+
+            if (i.playerColor == PlayerColor.WHITE) this.WhiteActivePieces.Add(i);
+            else this.BlackActivePieces.Add(i);
+        }
+
+    }
+
+    public bool IsCheckBlackPlayer() {
+
+        Board.Instance.playerTurn = PlayerColor.BLACK;
+
+        ActivePiecesUpdate();
+        int kingIndex = BlackKingIndex; // Board.Instance.BlackKing.GetComponent<Piece>().Index
+        foreach (Piece piece in Board.Instance.WhiteActivePieces.ToArray())
+        {
+            if (piece.CalculateValidMoves().Find(x => x == kingIndex) == kingIndex)
+            {
+                Board.Instance.BlackChecked = true;
+                return true;
+
+            }
+
+        }
+        Board.Instance.BlackChecked = false;
+        return false;
+
+    }
+    public bool IsCheckMateBlackPlayer()
+    {
+
+        int totalMoves = 0;
+
+        Board.Instance.playerTurn = PlayerColor.BLACK;
+
+        ActivePiecesUpdate();
+
+        foreach (Piece piece in Board.Instance.BlackActivePieces.ToArray())
+        {
+            totalMoves += piece.CalculateValidMoves().Count;
+        }
+
+        if (IsCheckBlackPlayer() &&  totalMoves == 0)
+        {
+
+            return true;
+
+        }
+        
+
+        return false;
+
+    }
+    public bool IsCheckWhitePlayer()
+    {
+
+        Board.Instance.playerTurn = PlayerColor.WHITE;
+
+        ActivePiecesUpdate();
+        int kingIndex = WhiteKingIndex ;//Board.Instance.WhiteKing.GetComponent<Piece>().Index;
+        foreach (Piece piece in Board.Instance.BlackActivePieces.ToArray())
+        {
+
+            if (piece.CalculateValidMoves().Find(x => x == kingIndex) == kingIndex)
+            {
+                Board.Instance.WhiteChecked = true;
+                return true;
+            }
+
+        }
+        Board.Instance.WhiteChecked = false;
+        return false;    
+
+    }
+
+    public bool IsCheckMateWhitePlayer()
+    {
+        int totalMoves = 0;
+
+        Board.Instance.playerTurn = PlayerColor.WHITE;
+
+        this.ActivePiecesUpdate();
+        foreach (Piece piece in Board.Instance.WhiteActivePieces.ToArray())
+        {
+
+            totalMoves += piece.CalculateValidMoves().Count;
+
+        }
+
+        if (totalMoves == 0 && IsCheckWhitePlayer())
+        {
+
+            return true;
+
+        }
+
+        return false;
+
+    }
+
 
 }

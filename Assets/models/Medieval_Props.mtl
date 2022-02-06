@@ -1,0 +1,97 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 03.06.2018 17:26:56
+
+newmtl M_Barrel
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Barrel_BaseColor.tif
+	map_Kd T_Barrel_BaseColor.tif
+	map_Ks T_Barrel_Specular.tif
+	map_bump T_Barrel_Bump.tif
+	bump T_Barrel_Bump.tif
+
+newmtl M_Crate
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Crate_Basecolor.tif
+	map_Kd T_Crate_Basecolor.tif
+	map_Ks T_Crate_Specular.tif
+	map_bump T_Crate_Bump.tif
+	bump T_Crate_Bump.tif
+
+newmtl M_Crossbow
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5880 0.5880 0.5880
+	Kd 0.5880 0.5880 0.5880
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Crossbow_Basecolor.tif
+	map_Kd T_Crossbow_Basecolor.tif
+	map_Ks T_Crossbow_Specular.tif
+
+newmtl M_WeaponRack
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Rack_Basecolor.tif
+	map_Kd T_Rack_Basecolor.tif
+
+newmtl M_Spear
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Spear_BaseColor.tif
+	map_Kd T_Spear_BaseColor.tif
+	map_Ks T_Spear_Specular.tif
+
+newmtl M_Sword
+	Ns 10.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.5882 0.5882 0.5882
+	Kd 0.5882 0.5882 0.5882
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka T_Sword_BaseColor.tif
+	map_Kd T_Sword_BaseColor.tif
+	map_Ks T_Sword_Specular.tif
+	map_bump T_Sword_Bump.tif
+	bump T_Sword_Bump.tif

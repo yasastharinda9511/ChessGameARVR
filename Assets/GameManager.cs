@@ -3,530 +3,230 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+
+public class GameManagerBase : MonoBehaviour
 {
     // Start is called before the first frame upda
+    private BOARDSTATUS status;
 
-    private enum TURN
-    {
-
-        BLACK,
-        WHITE
-    }
-
-    [SerializeField]
-    GameObject Board;
-
-    Board chessBoard;
-
-    public BOARDSTATUS status;
-
-    [SerializeField]
-    private Camera camera;
-
-    private Coroutine activeCoroutine;
-
+    protected List<int> selectedPieceValidMoves;
+    protected Piece selectedPieceComponent;
     public PlayerColor playerTurn { get; set; }
-
-    public static GameManager Instance;
-    public List<Piece> WhiteActivePieces;
-    public List<Piece> BlackActivePieces;
 
     public GameObject BlackKing { get; set; }
     public GameObject WhiteKing { get; set; }
 
-    private RaycastHit hit;
-    private Ray mouseRay;
-    private GameObject hitObject;
-    private GameObject selectedPiece;
-
-    private int pawntToQueenIndex ;
-
     int goToIndex;
-    Piece selectedPieceComponent;
-    Piece opponentSelect;
-    List<int> selectedPieceValidMoves;
 
-    public bool BlackChecked { get; set; }
-    public bool WhiteChecked { get; set; }
-
-    private void Awake()
-    {
-        Instance = this;
-    }
+    public int PawntoQueenIndex { get; set; }
     void Start()
     {
-        status = BOARDSTATUS.WHITE_PLAYER_TURN;
-        WhiteActivePieces = new List<Piece>();
-        BlackActivePieces = new List<Piece>();
-
-        chessBoard = Board.GetComponent<Board>();
-        chessBoard.OrganizeBoard();
+        AIPlayer.Instance.AIPlayerColor = PlayerColor.BLACK;
+        ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN);
 
         playerTurn = PlayerColor.WHITE;
-        mouseRay = camera.ScreenPointToRay(Input.mousePosition);
-        selectedPiece = null;
-
-        BlackChecked = false;
-        WhiteChecked = false;
-
-        selectedPieceValidMoves = new List<int>();
+        selectedPieceValidMoves = new List<int>() ; 
 
     }
 
-    // Update is called once per frame
-    void Update()
+    public BOARDSTATUS GetBoardStatus() {
+
+        return status;
+    }
+    public virtual void IsWhitePawnToQueen(int index)
     {
+        //UIManager.Instance.DebugBannerUpdate("Move indes is " + index);
+        if (Player.Instance.player == PlayerColor.WHITE  && (int)(index / 8) == 7)
+        { 
+            ChangeBoardState(BOARDSTATUS.WHITE_PAWN_TO_QUEEN);
+            PawntoQueenIndex = index;
+            UIManagerVR.Instance.WhiteDeckOn();
 
-        State(status);
-        Debug.Log("Board status is : " + status);
+
+
+        }
+        else
+        {
+
+            ChangeBoardState(BOARDSTATUS.IS_CHECK_BLACK_PLAYER);
+            this.IsCheckBlackPlayer();
+
+            //Player.Instance.player= PlayerColor.BLACK; ///only for the debugging purpose
+
+
+        }
 
     }
 
-    void UpdateActivePiece()
+    public virtual void IsCheckBlackPlayer()
     {
-
-        chessBoard.GameManagerSetup();
-
-    }
-
-    void IsCheckBlackPlayer() {
 
         UpdateActivePiece();
-        int kingIndex = BlackKing.GetComponent<Piece>().Index;
+        int kingIndex = Board.Instance.BlackKing.GetComponent<Piece>().Index;
 
-        foreach (Piece piece in WhiteActivePieces)
-        {
+        if (Board.Instance.IsCheckBlackPlayer()) {
 
-            if (piece.CalculateValidMoves().Find(x => x == kingIndex) == kingIndex)
-            {
-
-                Debug.Log(piece.pieceName);
-                status = BOARDSTATUS.BLACK_PLAYER_CHECK;
-                BlackChecked = true;
-                return;
-
-            }
+            ChangeBoardState(BOARDSTATUS.BLACK_PLAYER_CHECK);
+            IsCheckMateBlackPlayer();
+            Board.Instance.BlackChecked = true;
+            return;
 
         }
 
-        status = BOARDSTATUS.BLACK_PLAYER_TURN;
-        BlackChecked = false;
+        ChangeBoardState(BOARDSTATUS.BLACK_PLAYER_TURN);
+        Board.Instance.BlackChecked = false;
 
     }
 
-    void IsCheckMateBlackPlayer() {
+    public virtual void IsCheckMateBlackPlayer()
+    {
 
-        int totalMoves = 0;
-        int pieceCount;
         UpdateActivePiece();
 
-        foreach (Piece piece in BlackActivePieces)
-        {
-            pieceCount = piece.CalculateValidMoves().Count;
-            totalMoves += pieceCount;
-            foreach ( var i in piece.CalculateValidMoves()) {
-
-                Debug.Log("@123" + piece.name + "Index" + piece.Index + " ValidMove is :" + i);
-
-            }
-          
-
-
-        }
-        Debug.Log("total moves : " + totalMoves);
-        if (totalMoves == 0) status = BOARDSTATUS.BLACK_CHECKMATE;
-        else status = BOARDSTATUS.BLACK_PLAYER_TURN;
-
-    }
-
-
-
-    public void ActivePieceSelector(PlayerColor color , int index )
-    {
-
-        UIManager.Instance.InteractOn();
-        pawntToQueenIndex = index;
-        
-    }
-
-    public void PawnToQueen(int i) {
-
-        if (i == 1 && status == BOARDSTATUS.WHITE_PAWN_TO_QUEEN) 
+        if (Board.Instance.IsCheckMateBlackPlayer())
         {
 
-            chessBoard.OnePieceOrganize(PlayerColor.WHITE, PIECENAME.ROOK, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_BLACK_PLAYER;
+            ChangeBoardState(BOARDSTATUS.BLACK_CHECKMATE);
 
         }
-        else if (i == 2 && status == BOARDSTATUS.WHITE_PAWN_TO_QUEEN)
+        else 
         {
 
-            chessBoard.OnePieceOrganize(PlayerColor.WHITE, PIECENAME.KNIGHT, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_BLACK_PLAYER;
-            
-        }
-        else if (i == 3 && status == BOARDSTATUS.WHITE_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.WHITE, PIECENAME.BISHOP, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_BLACK_PLAYER;
-
-        }
-        else if (i == 4 && status == BOARDSTATUS.WHITE_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.WHITE, PIECENAME.QUEEN, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_BLACK_PLAYER;
-
-        }
-        else if (i == 1 && status == BOARDSTATUS.BLACK_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.BLACK, PIECENAME.ROOK, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_WHITE_PLAYER;
-
-        }
-        else if (i == 2 && status == BOARDSTATUS.BLACK_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.BLACK, PIECENAME.KNIGHT, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_WHITE_PLAYER;
-
-        }
-        else if (i == 3 && status == BOARDSTATUS.BLACK_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.BLACK , PIECENAME.BISHOP, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_WHITE_PLAYER;
-
-        }
-        else if (i == 4 && status == BOARDSTATUS.BLACK_PAWN_TO_QUEEN)
-        {
-
-            chessBoard.OnePieceOrganize(PlayerColor.BLACK, PIECENAME.QUEEN, pawntToQueenIndex);
-            UIManager.Instance.InteractOff();
-            status = BOARDSTATUS.IS_CHECK_WHITE_PLAYER;
-
-        }
-
-    }
-
-
-
-    private void State(BOARDSTATUS state) {
-
-        switch (state) {
-
-            case (BOARDSTATUS.WHITE_PLAYER_TURN):
-                playerTurn = PlayerColor.WHITE;
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.WHITE_PLAYER_TURN.ToString());
-                WhitePlayerPieceSelect();                
-                break;
-            case (BOARDSTATUS.WHITE_PLAYER_PIECE_SELECT):
-                whitePlayerMovePieceSelected();
-                break;
-            case (BOARDSTATUS.IS_CHECK_BLACK_PLAYER):
-                playerTurn = PlayerColor.BLACK;
-                IsCheckBlackPlayer();
-                break;
-            case (BOARDSTATUS.BLACK_PLAYER_CHECK):
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.BLACK_PLAYER_CHECK.ToString());
-                IsCheckMateBlackPlayer();
-                break;
-            case (BOARDSTATUS.BLACK_CHECKMATE):
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.BLACK_CHECKMATE.ToString());
-                break;
-            case (BOARDSTATUS.BLACK_PLAYER_TURN):
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.BLACK_PLAYER_TURN.ToString());
-                BlackPlayerPieceSelect();
-                break;
-            case (BOARDSTATUS.BLACK_PLAYER_PIECE_SELECT):
-                BlackPlayerMovePieceSelected();
-                break;
-            case (BOARDSTATUS.IS_CHECK_WHITE_PLAYER):
-                playerTurn = PlayerColor.WHITE;
-                IsCheckWhitePlayer();
-                break;
-            case (BOARDSTATUS.WHITE_PLAYER_CHECK):
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.WHITE_PLAYER_CHECK.ToString());
-                IsCheckMateWhitePlayer();
-                break;
-            case (BOARDSTATUS.WHITE_CHECKMATE):
-                UIManager.Instance.UpdateBoardStatusBanner(BOARDSTATUS.WHITE_PLAYER_CHECK.ToString());
-                break;
-            case (BOARDSTATUS.IS_BLACK_PAWN_TO_QUEEN):
-                IsBlackPawnToQueen();
-                break;
-            case (BOARDSTATUS.IS_WHITE_PAWN_TO_QUEEN):
-                IsWhitePawnToQueen();
-                break;
-            case (BOARDSTATUS.WHITE_PAWN_TO_QUEEN):
-                break;
-            case (BOARDSTATUS.BLACK_PAWN_TO_QUEEN):
-                break;
-
-
-        }
-    }
-
-    private void IsCheckMateWhitePlayer()
-    {
-        int totalMoves = 0;
-
-        UpdateActivePiece();
-        foreach (Piece piece in WhiteActivePieces)
-        {
-
-            totalMoves += piece.CalculateValidMoves().Count;
-
-        }
-
-        if (totalMoves == 0) status = BOARDSTATUS.WHITE_CHECKMATE;
-        else status = BOARDSTATUS.WHITE_PLAYER_TURN;
-    }
-
-    private void IsCheckWhitePlayer()
-    {
-        UpdateActivePiece();
-        int kingIndex = WhiteKing.GetComponent<Piece>().Index;
-
-        foreach (Piece piece in BlackActivePieces)
-        {
-
-            if (piece.CalculateValidMoves().Find(x => x == kingIndex) == kingIndex)
-            {
-
-                Debug.Log(piece.pieceName);
-                status = BOARDSTATUS.WHITE_PLAYER_CHECK;
-                WhiteChecked = true;
-                return;
-
-            }
-
-        }
-
-        status = BOARDSTATUS.WHITE_PLAYER_TURN;
-        WhiteChecked = false;
-    }
-
-
-    private void BlackPlayerMovePieceSelected()
-    {
-        mouseRay = camera.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(mouseRay, out hit) && hit.transform.gameObject.tag == "ValidBox" && Input.GetMouseButtonDown(0))
-        {
-            goToIndex = hit.transform.gameObject.GetComponent<ValidBox>().ValidIndex;
-            selectedPieceComponent = selectedPiece.GetComponent<Piece>();
-            selectedPieceComponent.ChangePosition(hit.transform.gameObject.GetComponent<ValidBox>().ValidIndex);
-            ObjectPool.instance.InactiveAllActive();
-
-            status = BOARDSTATUS.IS_BLACK_PAWN_TO_QUEEN;
-
-        }
-        else if (Physics.Raycast(mouseRay, out hit) && hit.transform.gameObject.tag == "Piece" && Input.GetMouseButtonDown(0))
-        {
-
-            opponentSelect = hit.transform.gameObject.GetComponent<Piece>();
-
-            Debug.Log(opponentSelect);
-            if (opponentSelect.playerColor != PlayerColor.WHITE) return;
-
-            if (selectedPieceValidMoves.Find(x => x == opponentSelect.Index) == opponentSelect.Index)
-            {
-
-                selectedPieceComponent = selectedPiece.GetComponent<Piece>();
-                selectedPieceComponent.ChangePosition(opponentSelect.Index);
-                ObjectPool.instance.InactiveAllActive();
-                status = BOARDSTATUS.IS_BLACK_PAWN_TO_QUEEN;
-
-            }
-
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-
-            status = BOARDSTATUS.BLACK_PLAYER_TURN;
-
-        }
-    }
-
-    private void WhitePlayerPieceSelect()
-    {
-        BlackChecked = false;
-
-        mouseRay = camera.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetMouseButtonDown(0) && selectedPiece != null) {
-
-            status = BOARDSTATUS.WHITE_PLAYER_PIECE_SELECT;
-
-        }
-
-        if (Physics.Raycast(mouseRay, out hit) &&
-            selectedPiece != hit.transform.gameObject &&
-            hit.transform.gameObject.tag == "Piece" &&
-            hit.transform.gameObject.GetComponent<Piece>() != null &&
-            hit.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.WHITE)
-        {
-            if (selectedPiece != null) selectedPiece.gameObject.GetComponent<Renderer>().material.color = Color.white;
-            hitObject = hit.transform.gameObject;
-            hitObject.GetComponent<Renderer>().material.color = Color.red;
-            ObjectPool.instance.InactiveAllActive();
-
-            selectedPieceValidMoves = hitObject.GetComponent<Piece>().CalculateValidMoves();
-
-            foreach (int i in selectedPieceValidMoves)
-            {
-
-                GameObject validBox = ObjectPool.instance.GetPooledObject();
-
-                validBox.transform.localPosition = chessBoard.CalculateLocalPosition(i);
-                validBox.GetComponent<ValidBox>().ValidIndex = i;
-            }
-
-            selectedPiece = hit.transform.gameObject;
-        }
-
-        else if (Physics.Raycast(mouseRay, out hit) &&
-                hit.transform.gameObject.tag != "Piece")
-        {
-
-            ObjectPool.instance.InactiveAllActive();
-            if (selectedPiece != null) selectedPiece.gameObject.GetComponent<Renderer>().material.color = Color.white;
-            selectedPiece = null;
+            ChangeBoardState(BOARDSTATUS.BLACK_PLAYER_TURN_WITH_CHECK);
 
         } 
 
-
     }
 
-    private void whitePlayerMovePieceSelected()
+    protected void UpdateActivePiece()
     {
-        mouseRay = camera.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(mouseRay, out hit) && hit.transform.gameObject.tag == "ValidBox" && Input.GetMouseButtonDown(0)) {
+        Board.Instance.ActivePiecesUpdate();
 
-            goToIndex = hit.transform.gameObject.GetComponent<ValidBox>().ValidIndex;
-            selectedPieceComponent = selectedPiece.GetComponent<Piece>();
-            selectedPieceComponent.ChangePosition(hit.transform.gameObject.GetComponent<ValidBox>().ValidIndex);
-            ObjectPool.instance.InactiveAllActive();
-
-            status = BOARDSTATUS.IS_WHITE_PAWN_TO_QUEEN;
-
-
-        } else if (Physics.Raycast(mouseRay, out hit) && hit.transform.gameObject.tag == "Piece" && Input.GetMouseButtonDown(0)) {
-
-             opponentSelect= hit.transform.gameObject.GetComponent<Piece>();
-
-            Debug.Log(opponentSelect);
-            if (opponentSelect.playerColor != PlayerColor.BLACK) return;
-
-            if (selectedPieceValidMoves.Find(x => x == opponentSelect.Index) == opponentSelect.Index) {
-
-                selectedPieceComponent = selectedPiece.GetComponent<Piece>();
-                selectedPieceComponent.ChangePosition(opponentSelect.Index);
-                ObjectPool.instance.InactiveAllActive();
-                status = BOARDSTATUS.IS_WHITE_PAWN_TO_QUEEN;
-
-            }
-
-        }
-        else if (Input.GetMouseButtonDown(0)) {
-
-            status = BOARDSTATUS.WHITE_PLAYER_TURN;
-
-        }
     }
 
-
-    private void BlackPlayerPieceSelect()
+    public virtual void PieceColorChange(string selectPiece)
     {
-        WhiteChecked = false;
 
-        mouseRay = camera.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetMouseButtonDown(0) && selectedPiece != null)
+        //Debug.Log("Rpc is called");
+        if (Player.Instance.SelectedObject != null) Player.Instance.SelectedObject.GetComponent<Renderer>().material.color = Color.white;
+        ObjectPool.instance.InactiveAllActive();
+
+        Player.Instance.SelectedObject = GameObject.Find(selectPiece);
+        Player.Instance.SelectedObject.GetComponent<Renderer>().material.color = Color.red;
+
+        selectedPieceValidMoves = Player.Instance.SelectedObject.GetComponent<Piece>().CalculateValidMoves();
+
+        foreach (int i in selectedPieceValidMoves)
         {
 
-            status = BOARDSTATUS.BLACK_PLAYER_PIECE_SELECT;
+            GameObject validBox = ObjectPool.instance.GetPooledObject();
 
+            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i);
+            validBox.GetComponent<ValidBox>().ValidIndex = i;
         }
 
-        if (Physics.Raycast(mouseRay, out hit) &&
-            selectedPiece != hit.transform.gameObject &&
-            hit.transform.gameObject.tag == "Piece" &&
-            hit.transform.gameObject.GetComponent<Piece>() != null &&
-            hit.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.BLACK)
-        {
-            if (selectedPiece != null) selectedPiece.gameObject.GetComponent<Renderer>().material.color = Color.white;
-
-            hitObject = hit.transform.gameObject;
-            hitObject.GetComponent<Renderer>().material.color = Color.red;
-            ObjectPool.instance.InactiveAllActive();
-            selectedPieceValidMoves = hitObject.GetComponent<Piece>().CalculateValidMoves();
-
-            foreach (int i in selectedPieceValidMoves)
-            {
-
-                GameObject validBox = ObjectPool.instance.GetPooledObject();
-
-                validBox.transform.localPosition = chessBoard.CalculateLocalPosition(i);
-                validBox.GetComponent<ValidBox>().ValidIndex = i;
-            }
-
-            selectedPiece = hit.transform.gameObject;
-        }
-
-        else if (Physics.Raycast(mouseRay, out hit) &&
-                hit.transform.gameObject.tag != "Piece")
-        {
-
-            ObjectPool.instance.InactiveAllActive();
-            if (selectedPiece != null) selectedPiece.gameObject.GetComponent<Renderer>().material.color = Color.white;
-            selectedPiece = null;
-
-        }
     }
+    public virtual void IsBlackPawnToQueen(int index)
+    {
 
-    public void IsBlackPawnToQueen() {
-
-        if (selectedPieceComponent.pieceName == PIECENAME.PAWN && selectedPieceComponent.playerColor == PlayerColor.BLACK && (int)(goToIndex / 8) == 0)
+        if (Player.Instance.player == PlayerColor.BLACK && (int)(index / 8) == 0)
         {
 
-            status = BOARDSTATUS.BLACK_PAWN_TO_QUEEN;
+            ChangeBoardState(BOARDSTATUS.BLACK_PAWN_TO_QUEEN);
+            PawntoQueenIndex = index;
+            //UIManager.Instance.InteractOn();
+            UIManagerVR.Instance.BlackDeckOn();
+
 
         }
         else
         {
 
-            status = BOARDSTATUS.IS_CHECK_WHITE_PLAYER;
+            ChangeBoardState(BOARDSTATUS.IS_CHECK_WHITE_PLAYER);
+            this.IsCheckWhitePlayer();
+            //Player.Instance.player = PlayerColor.WHITE;
+
 
         }
 
     }
+    public virtual void IsCheckWhitePlayer()
+    {
+        UpdateActivePiece();
+        int kingIndex = Board.Instance.WhiteKing.GetComponent<Piece>().Index;
 
-    public void IsWhitePawnToQueen()
+        if (Board.Instance.IsCheckWhitePlayer()) {
+
+            ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_CHECK);
+            IsCheckMateWhitePlayer();
+            Board.Instance.WhiteChecked = true;
+            return;
+
+        }
+        ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN);
+        Board.Instance.WhiteChecked = false;
+    }
+
+    public virtual void IsCheckMateWhitePlayer()
     {
 
-        if (selectedPieceComponent.pieceName == PIECENAME.PAWN && selectedPieceComponent.playerColor == PlayerColor.WHITE && (int)(goToIndex / 8) == 7)
+        UpdateActivePiece();
+
+        if (Board.Instance.IsCheckMateWhitePlayer())
         {
 
-            status = BOARDSTATUS.WHITE_PAWN_TO_QUEEN;
+            ChangeBoardState(BOARDSTATUS.WHITE_CHECKMATE);
 
         }
-        else
+        else 
+        {
+            ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN_WITH_CHECK);
+        } 
+
+    }
+
+    public virtual void ChangeBoardState(BOARDSTATUS state) {
+
+        status = state;
+    }
+
+    public virtual void PieceMove(int index)
+    {
+
+        selectedPieceComponent = Player.Instance.SelectedObject.GetComponent<Piece>();
+        selectedPieceComponent.ChangePosition(index);
+        ObjectPool.instance.InactiveAllActive();
+        Board.Instance.ActivePiecesUpdate();
+    }
+
+    public virtual void ClearSelectedPiece()
+    {
+
+        if (Player.Instance.SelectedObject != null)
         {
 
-            status = BOARDSTATUS.IS_CHECK_BLACK_PLAYER;
+            Player.Instance.SelectedObject.GetComponent<Renderer>().material.color = Color.white;
+            ObjectPool.instance.InactiveAllActive();
 
         }
 
     }
+
+    public virtual void ChangePlayerTurn(PlayerColor color)
+    {
+
+        Board.Instance.playerTurn = color;
+        this.playerTurn = color;
+
+    }
+
+    public virtual void OnePieceOrganize(PlayerColor player, PIECENAME pieceName, int index)
+    {
+
+        Board.Instance.OnePieceOrganize(player, pieceName, index);
+        Board.Instance.ActivePiecesUpdate();
+
+    }
+
 }

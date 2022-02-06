@@ -30,8 +30,8 @@ public class Knight : Piece
                    Vector3.Dot(CalculateLocalPosition(index2) - this.transform.localPosition , forward) >= 0)
             {
                 cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-                cof = (cof > 2.5f) ? 2.5f : cof;
-                this.transform.Translate(forward * Time.deltaTime * cof * 10f);
+                cof = (cof > 1.5f) ? 1.5f : cof;
+                this.transform.Translate(forward * Time.deltaTime * cof * speed);
                 yield return null;
 
             }
@@ -47,8 +47,8 @@ public class Knight : Piece
             {
                 
                 cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-                cof = (cof >2.5f) ? 2.5f : cof;
-                this.transform.Translate(forward * Time.deltaTime * cof * 10f);
+                cof = (cof >1.5f) ? 1.5f : cof;
+                this.transform.Translate(forward * Time.deltaTime * cof * speed);
                 yield return null;
 
 
@@ -67,8 +67,8 @@ public class Knight : Piece
             {
 
                 cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-                cof = (cof > 2.5f) ? 2.5f : cof;
-                this.transform.Translate(forward * Time.deltaTime * cof * 10f);
+                cof = (cof > 1.5f) ? 1.5f : cof;
+                this.transform.Translate(forward * Time.deltaTime * cof * speed);
                 yield return null;
 
 
@@ -85,8 +85,8 @@ public class Knight : Piece
             {
 
                 cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-                cof = (cof > 2.5f) ? 2.5f : cof;
-                this.transform.Translate(forward * Time.deltaTime * cof * 10f);
+                cof = (cof > 1.5f) ? 1.5f : cof;
+                this.transform.Translate(forward * Time.deltaTime * cof * speed);
                 yield return null;
 
 
@@ -96,17 +96,16 @@ public class Knight : Piece
         }
         else {
 
-            Vector3 distanceVector;
+            Vector3 distanceVector = this.transform.localPosition;
 
             forward = Vector3.Normalize(CalculateLocalPosition(index) - CalculateLocalPosition(prevIndex));
-
-            Debug.Log("Forward vector is : " + forward );
 
             float magnitude = Vector3.Magnitude(forward);
 
             float altitude;
 
-            while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f) {
+            while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f  && 
+                   Vector3.Dot(CalculateLocalPosition(index) - distanceVector, forward) >= 0) {
 
                 cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
 
@@ -205,7 +204,7 @@ public class Knight : Piece
 
         while (columns != 0 || rows != 0) {
 
-            if (Board.ChessBoard[prevIndex + rows * 8 + columns] != null && (prevIndex + rows * 8 + columns != index)) {
+            if (Board.Instance.ChessBoard[prevIndex + rows * 8 + columns] != null && (prevIndex + rows * 8 + columns != index)) {
 
                 PathOne = false;
                 Debug.Log("Path OneIndex false : " + (Index + rows * 8 + columns));
@@ -228,7 +227,7 @@ public class Knight : Piece
 
         while (columns != 0 || rows != 0) {
 
-            if (Board.ChessBoard[prevIndex + rows * 8 + columns] != null && (prevIndex + rows * 8 + columns != index)) {
+            if (Board.Instance.ChessBoard[prevIndex + rows * 8 + columns] != null && (prevIndex + rows * 8 + columns != index)) {
 
                 Pathtwo = false;
                 Debug.Log("Path Two Index false : " + (prevIndex + rows * 8 + columns));

@@ -9,12 +9,15 @@ public class EliminatePieceorganize : MonoBehaviour
     GameObject parentGameObject;
     [SerializeField] 
     PlayerColor color;
+    [SerializeField]
+    Vector3 initialPoint;
     int filledIndex = 0;
-
+    [SerializeField]
+    Vector3 cell;
     public Vector3 GetLocalPosition(int index) 
     {
 
-        return new Vector3(4.375f - (1.25f * (float)(index % 8)) , 1f, 0.5f - (2f * (int)(index / 8)));
+        return initialPoint + new Vector3(index % 8 * cell.x , cell.y * (int)(index /8 ) , 0  );
 
     }
 
