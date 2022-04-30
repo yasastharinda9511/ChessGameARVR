@@ -9,7 +9,10 @@ public class GameManagerBase : MonoBehaviour
     // Start is called before the first frame upda
     private BOARDSTATUS status;
 
-    protected List<int> selectedPieceValidMoves;
+    //protected List<int> selectedPieceValidMoves;
+
+    protected List<Moves> selectedPieceValidMoves;
+
     protected Piece selectedPieceComponent;
     public PlayerColor playerTurn { get; set; }
 
@@ -25,7 +28,7 @@ public class GameManagerBase : MonoBehaviour
         ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN);
 
         playerTurn = PlayerColor.WHITE;
-        selectedPieceValidMoves = new List<int>() ; 
+        selectedPieceValidMoves = new List<Moves>() ; 
 
     }
 
@@ -62,7 +65,7 @@ public class GameManagerBase : MonoBehaviour
     {
 
         UpdateActivePiece();
-        int kingIndex = Board.Instance.BlackKing.GetComponent<Piece>().Index;
+        UpdateValidMoves();
 
         if (Board.Instance.IsCheckBlackPlayer()) {
 
@@ -82,7 +85,9 @@ public class GameManagerBase : MonoBehaviour
     {
 
         UpdateActivePiece();
+        UpdateValidMoves();
 
+        Debug.Log("called the check mate black function");
         if (Board.Instance.IsCheckMateBlackPlayer())
         {
 
@@ -105,6 +110,11 @@ public class GameManagerBase : MonoBehaviour
 
     }
 
+    protected void UpdateValidMoves()
+    {
+        Board.Instance.UpdateValidMoves();
+    }
+
     public virtual void PieceColorChange(string selectPiece)
     {
 
@@ -117,13 +127,13 @@ public class GameManagerBase : MonoBehaviour
 
         selectedPieceValidMoves = Player.Instance.SelectedObject.GetComponent<Piece>().CalculateValidMoves();
 
-        foreach (int i in selectedPieceValidMoves)
+        foreach (Moves i in selectedPieceValidMoves)
         {
 
             GameObject validBox = ObjectPool.instance.GetPooledObject();
 
-            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i);
-            validBox.GetComponent<ValidBox>().ValidIndex = i;
+            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i.Destination);
+            validBox.GetComponent<ValidBox>().ValidIndex = i.Destination;
         }
 
     }
@@ -154,6 +164,7 @@ public class GameManagerBase : MonoBehaviour
     public virtual void IsCheckWhitePlayer()
     {
         UpdateActivePiece();
+        UpdateValidMoves();
         int kingIndex = Board.Instance.WhiteKing.GetComponent<Piece>().Index;
 
         if (Board.Instance.IsCheckWhitePlayer()) {
@@ -172,7 +183,7 @@ public class GameManagerBase : MonoBehaviour
     {
 
         UpdateActivePiece();
-
+        UpdateValidMoves();
         if (Board.Instance.IsCheckMateWhitePlayer())
         {
 

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Queen : Piece
 {
-
     public override IEnumerator Move(int index)
     {
         MoveCoroute = false;
@@ -62,13 +61,11 @@ public class Queen : Piece
 
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.FREE);
                     }
                     else if ((i == 9 || i == -9) && InsideTheBoard(index) && CheckAdjacentDiagonal(index, prevIndex))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.FREE);
                     }
                     else
                     {
@@ -80,18 +77,17 @@ public class Queen : Piece
                 {
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
                     else if ((i == 9 || i == -9) && InsideTheBoard(index) && CheckAdjacentDiagonal(index, prevIndex))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
                     break;
                 }
                 else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
+                    DefendingMovesScore += Board.Instance.ChessBoard[index].PieceThreatCoef;
                     break;
                 }
 
@@ -121,13 +117,11 @@ public class Queen : Piece
 
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.FREE);
                     }
                     else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.FREE);
                     }
                     else
                     {
@@ -139,18 +133,17 @@ public class Queen : Piece
                 {
                     if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
                     else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
-                        //ValidMoves.Add(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
                     break;
                 }
                 else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
+                    DefendingMovesScore += Board.Instance.ChessBoard[index].PieceThreatCoef;
                     break;
                 }
 
@@ -162,7 +155,7 @@ public class Queen : Piece
         }
     }
 
-    public override List<int> CalculateValidMoves()
+    public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
         checkInfiniteAllDirection();

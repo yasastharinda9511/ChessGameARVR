@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Rook : Piece
 {
-    public override List<int> CalculateValidMoves()
+    public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
         checkSquareInfinite();
@@ -43,6 +43,7 @@ public class Rook : Piece
     void checkSquareInfinite()
     {
         int[] directions = new int[4] { 1, -1, 8, -8 };
+        //int[] directions = new int[0];
         int index;
         int prevIndex;
         foreach (var i in directions)
@@ -55,15 +56,17 @@ public class Rook : Piece
                 if (Board.Instance.ChessBoard[index] == null)
                 {
 
-                    if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
+                    if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex))
                     {
                         //ValidMoves.Add(index);
-                        AddIndex(index);
+                        AddIndex(index, MOVETYPE.FREE);
+
+
                     }
-                    else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex) && InsideTheBoard(index))
+                    else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex))
                     {
                         //ValidMoves.Add(index);
-                        AddIndex(index);
+                        AddIndex(index , MOVETYPE.FREE);
                     }
                     else
                     {
@@ -73,20 +76,21 @@ public class Rook : Piece
                 }
                 else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor != this.playerColor))
                 {
-                    if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex) && InsideTheBoard(index))
+                    if ((i == 1 || i == -1) && CheckInSameRow(index, prevIndex))
                     {
                         //ValidMoves.Add(index);
-                        AddIndex(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
-                    else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex) && InsideTheBoard(index))
+                    else if ((i == 8 || i == -8) && CheckInSameColumn(index, prevIndex))
                     {
                         //ValidMoves.Add(index);
-                        AddIndex(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                     }
                     break;
                 }
                 else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
+                    DefendingMovesScore += Board.Instance.ChessBoard[index].PieceThreatCoef;
                     break;
                 }
 

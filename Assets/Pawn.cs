@@ -45,75 +45,137 @@ public class Pawn : Piece
     {
         throw new System.NotImplementedException();
     }
+    void CheckSingleDoubleUpWhite() {
 
-    void checkSingleDoubleUp()
-    {
-        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 8) && Board.Instance.ChessBoard[Index + 8] == null && pieceName == PIECENAME.PAWN)
+        if (Index + 8 <= 63 && Board.Instance.ChessBoard[Index + 8] == null)
         {
 
-            //ValidMoves.Add(Index + 8);
-            AddIndex(Index + 8);
-            checkDoubleUp();
+            if ((int)(Index + 8) / 8 == 7)
+            {
 
-        }
-        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 8) && Board.Instance.ChessBoard[Index - 8] == null && pieceName == PIECENAME.PAWN)
-        {
+                AddIndex(Index + 8, MOVETYPE.PAWN_PROMOTION);
 
-            //ValidMoves.Add(Index - 8);
-            AddIndex(Index - 8);
-            checkDoubleUp();
+            }
+            else {
 
-        }
+                AddIndex(Index + 8, MOVETYPE.FREE);
 
-    }
-    void checkDoubleUp()
-    {
-
-        if (playerColor == PlayerColor.WHITE && InsideTheBoard(Index + 16) && Board.Instance.ChessBoard[Index + 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
-        {
-
-            //ValidMoves.Add(Index + 16);
-            AddIndex(Index + 16);
-        }
-        else if (playerColor == PlayerColor.BLACK && InsideTheBoard(Index - 16) && Board.Instance.ChessBoard[Index - 16] == null && isFirstMove && pieceName == PIECENAME.PAWN)
-        {
-
-            //ValidMoves.Add(Index - 16);
-            AddIndex(Index - 16);
+            }
+            
+            if (isFirstMove) DoubleUpWhite();
 
         }
 
     }
 
-    void checkEleminateCrossMove()
-    {
+    void CheckSingleDoubleUpBlack() {
 
-        if (playerColor == PlayerColor.WHITE && pieceName == PIECENAME.PAWN)
-        {
-            if (InsideTheBoard(Index + 7) && Board.Instance.ChessBoard[Index + 7] != null && (int)((Index + 7) / 8) == (int)(Index / 8) + 1)
-                if (Board.Instance.ChessBoard[Index + 7].playerColor != this.playerColor) AddIndex(Index + 7);//ValidMoves.Add(Index + 7);
-            if (InsideTheBoard(Index + 9)  && Board.Instance.ChessBoard[Index + 9] != null && (int)((Index + 9) / 8) == (int)(Index / 8) + 1)
-                if (Board.Instance.ChessBoard[Index + 9].playerColor != this.playerColor) AddIndex(Index + 9);//ValidMoves.Add(Index + 9);
 
-        }
-        else if (playerColor == PlayerColor.BLACK && pieceName == PIECENAME.PAWN)
+        if (Index - 8 >=0 && Board.Instance.ChessBoard[Index - 8] == null)
         {
 
-            if (InsideTheBoard(Index - 7) && Board.Instance.ChessBoard[Index - 7] != null && (int)((Index - 7) / 8) + 1 == (int)(Index / 8))
-                if (Board.Instance.ChessBoard[Index - 7].playerColor != this.playerColor)  AddIndex(Index - 7);//ValidMoves.Add(Index - 7);
-            if (InsideTheBoard(Index - 9) && Board.Instance.ChessBoard[Index - 9] != null && (int)((Index - 9) / 8) + 1 == (int)(Index / 8))
-                if (Board.Instance.ChessBoard[Index - 9].playerColor != this.playerColor) AddIndex(Index - 9);//ValidMoves.Add(Index - 9);
+            if ((int)((Index - 8) / 8) == 0)
+            {
+
+                AddIndex(Index - 8, MOVETYPE.PAWN_PROMOTION);
+
+            }
+            else {
+
+                AddIndex(Index - 8, MOVETYPE.FREE);
+
+            }
+            
+            if (isFirstMove) DoubleUpBlack();
 
         }
 
     }
 
-    public override List<int> CalculateValidMoves()
+    void DoubleUpWhite() {
+
+        if (Index + 16 <= 63 && Board.Instance.ChessBoard[Index + 16] == null) {
+
+            AddIndex(Index + 16, MOVETYPE.FREE);
+        } 
+    
+    }
+    void DoubleUpBlack() {
+
+        if (Index - 16 >= 0 && Board.Instance.ChessBoard[Index - 16] == null) {
+
+            AddIndex(Index - 16 , MOVETYPE.FREE);
+
+        }
+        
+    
+    }
+
+    void checkEleminateCrossMoveWhite()
+    {
+
+        if (Index + 7 <= 63 &&
+            Board.Instance.ChessBoard[Index + 7] != null &&
+            (int)((Index + 7) / 8) == (int)(Index / 8) + 1 &&
+            Board.Instance.ChessBoard[Index + 7].playerColor != playerColor 
+            )
+        {
+            AddIndex(Index + 7 , MOVETYPE.ATTACKING);
+        }
+        //ValidMoves.Add(Index + 7);
+        if (Index + 9 <= 63 &&
+            Board.Instance.ChessBoard[Index + 9] != null &&
+            (int)((Index + 9) / 8) == (int)(Index / 8) + 1 &&
+            Board.Instance.ChessBoard[Index + 9].playerColor != playerColor
+            )
+        {
+            AddIndex(Index + 9 , MOVETYPE.ATTACKING);
+        }
+
+    }
+
+    void checkEleminateCrossMoveBlack() {
+
+        if (Index - 7 >= 0 &&
+            Board.Instance.ChessBoard[Index - 7] != null &&
+            (int)((Index - 7) / 8) + 1 == (int)(Index / 8) &&
+             Board.Instance.ChessBoard[Index - 7].playerColor != this.playerColor)
+        {
+
+            AddIndex(Index - 7 , MOVETYPE.ATTACKING);
+
+        }
+        //ValidMoves.Add(Index - 7);
+        if (Index - 9 >=0 &&
+            Board.Instance.ChessBoard[Index - 9] != null &&
+            (int)((Index - 9) / 8) + 1 == (int)(Index / 8) &&
+            Board.Instance.ChessBoard[Index - 9].playerColor != this.playerColor)
+        {
+            AddIndex(Index - 9 , MOVETYPE.ATTACKING);
+        }
+                //ValidMoves.Add(Index - 9);
+
+    }
+
+    public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
-        checkSingleDoubleUp();
-        checkEleminateCrossMove();
+
+        if (playerColor == PlayerColor.WHITE)
+        {
+
+            CheckSingleDoubleUpWhite();
+            checkEleminateCrossMoveWhite();
+
+        }
+        else {
+
+            CheckSingleDoubleUpBlack();
+            checkEleminateCrossMoveBlack();
+
+        }
 
         return ValidMoves;
     }
+
 }

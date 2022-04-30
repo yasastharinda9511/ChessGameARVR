@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Bishop : Piece
 {
-    public override List<int> CalculateValidMoves()
+
+    private const int scoreValue = 30;
+    public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
         checkCrossInfinite();
@@ -58,12 +60,14 @@ public class Bishop : Piece
 
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
+
+                        AddIndex(index , MOVETYPE.FREE);
                         //ValidMoves.Add(index);
                     }
                     else if ((i == 9 || i == -9) && InsideTheBoard(index) && CheckAdjacentDiagonal(index, prevIndex))
                     {
-                        AddIndex(index);
+                        
+                        AddIndex(index , MOVETYPE.FREE);
                         //ValidMoves.Add(index);
                     }
                     else
@@ -76,18 +80,19 @@ public class Bishop : Piece
                 {
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
-                        AddIndex(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                         //ValidMoves.Add(index);
                     }
                     else if ((i == 9 || i == -9) && InsideTheBoard(index) && CheckAdjacentDiagonal(index, prevIndex))
                     {
-                        AddIndex(index);
+                        AddIndex(index , MOVETYPE.ATTACKING);
                         //ValidMoves.Add(index);
                     }
                     break;
                 }
                 else if ((Board.Instance.ChessBoard[index] != null && Board.Instance.ChessBoard[index].playerColor == this.playerColor))
                 {
+                    DefendingMovesScore += Board.Instance.ChessBoard[index].PieceThreatCoef;
                     break;
                 }
 

@@ -3,7 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System.Threading;
+using System.Text;
 
+enum AIGameState { 
+    
+    BeginGame ,
+    Middle ,
+    End 
+}
 public struct MoveEvaluation {
 
     public float EvaluationValue { get; set; }
@@ -19,6 +26,7 @@ public struct MoveEvaluation {
     }
 
 }
+
 public class AIPlayer : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -89,6 +97,12 @@ public class AIPlayer : MonoBehaviour
                                             -5, -4, -3, -3, -3, -3, -4, -5
                                             };
 
+    int GloabalCount = 0;
+    int findInsideCount = 0;
+
+    Dictionary<ulong , MoveEvaluation> EvalBoads = new Dictionary<ulong, MoveEvaluation>();
+
+    List<ulong> HashValueList = new List<ulong>();
     public void Awake()
     {
         if (Instance == null)
@@ -105,28 +119,31 @@ public class AIPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!aiThreadStart) return;
-        else {
+        //if (!aiThreadStart) return;
+        //else
+        //{
 
-            if (!ai.IsAlive) {
+        //    if (!ai.IsAlive)
+        //    {
 
-                Board.Instance.ChessBoard[threadMove.Index].ChangePosition(threadMove.GotoIndex);
+        //        Board.Instance.ChessBoard[threadMove.Index].ChangePosition(threadMove.GotoIndex);
 
-                if (AIPlayer.Instance.AIPlayerColor == PlayerColor.WHITE)
-                {
-                    GameManagerAI.Instance.IsCheckBlackPlayer();
+        //        if (AIPlayer.Instance.AIPlayerColor == PlayerColor.WHITE)
+        //        {
+        //            GameManagerAI.Instance.IsCheckBlackPlayer();
 
-                } else if (AIPlayer.Instance.AIPlayerColor == PlayerColor.BLACK) 
-                {
+        //        }
+        //        else if (AIPlayer.Instance.AIPlayerColor == PlayerColor.BLACK)
+        //        {
 
-                    GameManagerAI.Instance.IsCheckWhitePlayer();
+        //            GameManagerAI.Instance.IsCheckWhitePlayer();
 
-                }
-                aiThreadStart = false;
+        //        }
+        //        aiThreadStart = false;
 
-            }
-        
-        }
+        //    }
+
+        //}
     }
 
     public void DelayAIMoveCall() {
@@ -137,224 +154,358 @@ public class AIPlayer : MonoBehaviour
     public void AIMove()
     {
         aiThreadStart = true;
-        ai = new Thread(() => GetMove(Board.Instance.ChessBoard, this.AIPlayerColor, 2 , float.MinValue, float.MaxValue));
-        ai.Start();
-    }
+        //ai = new Thread(() => GetMove(Board.Instance.ChessBoard, this.AIPlayerColor, 2, float.MinValue, float.MaxValue));
+        //ai.Start();
+        GloabalCount = 0;
+        findInsideCount = 0;
 
-    public MoveEvaluation GetMove(Piece[] board, PlayerColor playerTurn, int depth, float alpha , float beta)
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        // the code that you want to measure comes here
+        ulong hash = Board.Instance.GetHashValue();
+
+        GetMove(this.AIPlayerColor, 1 , float.MinValue, float.MaxValue);
+
+        watch.Stop();
+
+        if (hash == Board.Instance.GetHashValue()) Debug.Log("Same Hash value value");
+
+        Debug.Log("@@@@@ Time taken is :" + (watch.ElapsedMilliseconds));
+
+
+        Board.Instance.ActivePiecesUpdate();
+
+        Board.Instance.ChessBoard[threadMove.Index].ChangePosition(threadMove.GotoIndex);
+
+        Debug.Log("permutation count is  :" + GloabalCount);
+        Debug.Log("repeat permutations count is  :" + findInsideCount);
+
+        if (AIPlayer.Instance.AIPlayerColor == PlayerColor.WHITE)
+        {
+            GameManagerAI.Instance.IsCheckBlackPlayer();
+
+        }
+        else if (AIPlayer.Instance.AIPlayerColor == PlayerColor.BLACK)
+        {
+
+            GameManagerAI.Instance.IsCheckWhitePlayer();
+
+        }
+
+        Debug.Log("Final Board is :" + Board.Instance.PrintBoard());
+
+        Board.Instance.UpdateValidMoves();
+        Debug.Log(Board.Instance.PrintBoardNow());
+
+        DebugEvaluateBoard(Board.Instance.ChessBoard);
+
+    }
+    public MoveEvaluation GetMove(PlayerColor playerTurn, int depth, float alpha , float beta)
     {
 
         int originalIndex;
-        Piece[] cloneBoard = new Piece[64];
 
-        List<Piece> activePiece = new List<Piece>();
-         
-        List<MoveEvaluation> moveEvaluations = new List<MoveEvaluation>();
+        List<Moves> Validmoves = new List<Moves>();
 
-        MoveEvaluation node = new MoveEvaluation(0,0,0);
-
-        board.CopyTo(cloneBoard, 0);
-
-        Board.Instance.ChessBoard = cloneBoard;
-        Board.Instance.ActivePiecesUpdate();
+        MoveEvaluation node = new MoveEvaluation(0,0,0); 
 
         PlayerColor opponentColor = (playerTurn == PlayerColor.WHITE) ? PlayerColor.BLACK : PlayerColor.WHITE;
+        
+        Board.Instance.UpdateValidMoves();
 
         if (Board.Instance.IsCheckMateWhitePlayer())
         {
-            return  new MoveEvaluation(-9999, -1, -1);
+            return new MoveEvaluation(-9999, -1, -1);
 
         }
+
         else if (Board.Instance.IsCheckMateBlackPlayer())
         {
-
-            return new MoveEvaluation(9999, -1, -1);
+            return new MoveEvaluation(+9999, -1, -1);
         }
 
         else if (depth == -1)
         {
-
-            return new MoveEvaluation(EvaluateBoard(cloneBoard), -1, -1);
+            GloabalCount++;
+            return new MoveEvaluation(EvaluateBoard(Board.Instance.ChessBoard), -1, -1);
 
         }
 
-        if (playerTurn == PlayerColor.WHITE)
-        {
-            Board.Instance.WhiteActivePieces.ForEach
-                (piece =>
-                {
-                    activePiece.Add((Piece)piece.Clone());
+        PlayerColor p = (playerTurn == PlayerColor.WHITE) ? PlayerColor.BLACK : PlayerColor.WHITE;
 
-                });
-        }
+        //List<int> opponetValidMoves = GetOppnentAllValidMoves(p);
 
-        else if (playerTurn == PlayerColor.BLACK) {
-
-            Board.Instance.BlackActivePieces.ForEach
-                (piece =>
-                {
-                    activePiece.Add((Piece)piece.Clone());
-
-                });
-
-        } 
-
-
-        Piece originalPiece;
+        Piece originalPiece = null;
+        bool IsFirstMove;
+        MoveEvaluation move;
 
         if (playerTurn == PlayerColor.WHITE) {
 
+            Validmoves = moveOrdering(PlayerColor.WHITE);
+
             float maxValue = float.MinValue;
-            foreach (Piece piece in activePiece)
+
+            foreach (Moves i in Validmoves)
             {
 
-                foreach (int i in piece.CalculateValidMoves().ToArray())  //  piece.CalculateValidMoves().ToArray()
-                {
+                ulong prevHash = Board.Instance.GetHashValue();
+
+                Board.Instance.UpdateHashValue(i.Source, i.Destination);
+                
+                if (Board.Instance.ChessBoard[i.Destination] != null) {
+
+                    originalPiece = Board.Instance.ChessBoard[i.Destination];
+                    Board.Instance.RemoveActivePiece(originalPiece);
+                } 
+                else originalPiece = null;
+
+                Board.Instance.ChessBoard[i.Destination] = Board.Instance.ChessBoard[i.Source];
+                Board.Instance.ChessBoard[i.Source] = null;
+
+                originalIndex = Board.Instance.ChessBoard[i.Destination].Index;
+                IsFirstMove = Board.Instance.ChessBoard[i.Destination].isFirstMove;
+
+                Board.Instance.ChessBoard[i.Destination].Index = i.Destination;
+                Board.Instance.ChessBoard[i.Destination].isFirstMove = false;
+
+                move = GetMove(opponentColor, depth - 1, alpha, beta);
+
+                alpha = Mathf.Max(alpha, move.EvaluationValue);
+                maxValue = Mathf.Max(maxValue , move.EvaluationValue);
+                if ( maxValue == move.EvaluationValue) {
+
+                    node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
                     
-                    if (cloneBoard[i] != null) originalPiece = (Piece)cloneBoard[i].Clone();
-                    else originalPiece = null;
-
-                    if (piece.pieceName == PIECENAME.KING) Board.Instance.BlackKingIndex = i;
-
-                    cloneBoard[i] = (Piece)piece.Clone();
-                    cloneBoard[piece.Index] = null;
-                    originalIndex = cloneBoard[i].Index;
-                    cloneBoard[i].Index = i;
-
-                    MoveEvaluation move = GetMove(cloneBoard, opponentColor, depth - 1, alpha, beta);
-                    alpha = Mathf.Max(alpha, move.EvaluationValue);
-                    maxValue = Mathf.Max(maxValue , move.EvaluationValue);
-                    if ( maxValue == move.EvaluationValue) {
-
-                        node = new MoveEvaluation(move.EvaluationValue, originalIndex, i);
-                    
-                    }
-
-                    cloneBoard[i] = originalPiece;
-                    cloneBoard[originalIndex] = piece;
-
-                    if (piece.pieceName == PIECENAME.KING) Board.Instance.BlackKingIndex = piece.Index;
-
-                    if (move.EvaluationValue >= beta) {
-
-                        Board.Instance.ChessBoard = board;
-                        threadMove = node ;
-                        return threadMove;
-                    } 
-
                 }
+
+                Board.Instance.ChessBoard[i.Source] = Board.Instance.ChessBoard[i.Destination];
+                Board.Instance.ChessBoard[i.Source].Index = i.Source;
+                Board.Instance.ChessBoard[i.Source].isFirstMove = IsFirstMove;
+
+                Board.Instance.ChessBoard[i.Destination] = originalPiece;
+                if (originalPiece != null) {
+
+                    Board.Instance.AddActivePiece(originalPiece);
+                   
+                }
+
+                if (move.EvaluationValue >= beta) {
+
+                    break;
+                } 
 
             }
 
-            Board.Instance.ChessBoard = board;
             threadMove = node;
             return threadMove;
 
         } else {
+            
+
+            Validmoves = moveOrdering(PlayerColor.BLACK);
+
+
+            //Debug.Log("Black valid moves count is :" + Validmoves.Count);
+
 
             float minValue = float.MaxValue;
-            foreach (Piece piece in activePiece)
+            foreach (Moves i in Validmoves)
             {
-                foreach (int i in piece.CalculateValidMoves().ToArray()) //  piece.CalculateValidMoves().ToArray()
+
+                ulong prevHash = Board.Instance.GetHashValue();
+
+                Board.Instance.UpdateHashValue(i.Source, i.Destination);
+
+                if (Board.Instance.ChessBoard[i.Destination] != null) {
+
+                    originalPiece = Board.Instance.ChessBoard[i.Destination];
+                    Board.Instance.RemoveActivePiece(originalPiece);
+
+                } 
+                else originalPiece = null;
+
+                Board.Instance.ChessBoard[i.Destination] = Board.Instance.ChessBoard[i.Source];
+                Board.Instance.ChessBoard[i.Source] = null;
+
+                originalIndex = Board.Instance.ChessBoard[i.Destination].Index;
+                IsFirstMove = Board.Instance.ChessBoard[i.Destination].isFirstMove;
+
+                Board.Instance.ChessBoard[i.Destination].Index = i.Destination;
+                Board.Instance.ChessBoard[i.Destination].isFirstMove = false;
+
+                move = GetMove(opponentColor, depth - 1, alpha, beta);
+
+                //Debug.Log("white move evaluation value is :" + move.EvaluationValue);
+                beta = Mathf.Min(beta, move.EvaluationValue);
+                minValue = Mathf.Min(minValue, move.EvaluationValue);
+
+                //Debug.Log("######## Black values :" + move.EvaluationValue);
+
+                if (minValue == move.EvaluationValue)
+                {
+                    node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
+                }
+
+                Board.Instance.ChessBoard[i.Source] = Board.Instance.ChessBoard[i.Destination];
+
+                Board.Instance.ChessBoard[i.Source].Index = i.Source;
+                Board.Instance.ChessBoard[i.Source].isFirstMove = IsFirstMove;
+
+                Board.Instance.ChessBoard[i.Destination] = originalPiece;
+
+                //Debug.Log(Board.Instance.PrintBoard());
+
+                if (originalPiece != null)
                 {
 
-                    if (cloneBoard[i] != null) originalPiece = (Piece)cloneBoard[i].Clone();
-                    else originalPiece = null;
-
-                    if (piece.pieceName == PIECENAME.KING) Board.Instance.BlackKingIndex = i;
-
-                    cloneBoard[i] = (Piece)piece.Clone();
-                    cloneBoard[piece.Index] = null;
-                    originalIndex = cloneBoard[i].Index;
-                    cloneBoard[i].Index = i;
-
-                    MoveEvaluation move = GetMove(cloneBoard, opponentColor , depth - 1, alpha, beta);
-                    beta = Mathf.Min(beta, move.EvaluationValue);
-                    minValue = Mathf.Min(minValue, move.EvaluationValue);
-                    if (minValue == move.EvaluationValue)
-                    {
-                        node = new MoveEvaluation(move.EvaluationValue, originalIndex, i);
-                    }
-                    cloneBoard[i] = originalPiece;
-                    cloneBoard[originalIndex] = piece;
-
-                    if (piece.pieceName == PIECENAME.KING) Board.Instance.BlackKingIndex = piece.Index;
-
-                    if (move.EvaluationValue <= alpha)
-                    {
-                        Board.Instance.ChessBoard = board;
-                        threadMove = node;
-                        return threadMove;
-
-                    }
+                    Board.Instance.AddActivePiece(originalPiece);
 
                 }
 
+                if (move.EvaluationValue <= alpha)
+                {
+
+                    break;
+
+                }
             }
 
-            Board.Instance.ChessBoard = board;
             threadMove = node;
             return threadMove;
             
         }
     }
     float EvaluateBoard(Piece[] board) {
-
         float value = 0;
-        foreach (Piece piece in board)
+
+        foreach (Piece piece in Board.Instance.WhiteActivePieces)
         {
-            if (piece != null) {
+            value += (piece.PieceValue + 0.1f * piece.ValidMoves.Count);
 
-                if (piece.pieceName == PIECENAME.PAWN && piece.playerColor == PlayerColor.WHITE) value += 10 + pawnPeiceSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.ROOK && piece.playerColor == PlayerColor.WHITE) value += 50 + rookPeiceSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.BISHOP && piece.playerColor == PlayerColor.WHITE) value += 30 + bishopPeiceSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.KNIGHT && piece.playerColor == PlayerColor.WHITE) value += 30 + knightPeiceSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.KING && piece.playerColor == PlayerColor.WHITE) value += 900  + kingSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.QUEEN && piece.playerColor == PlayerColor.WHITE) value += 90 + queenSquareTable[piece.Index];
-                else if (piece.pieceName == PIECENAME.PAWN && piece.playerColor == PlayerColor.BLACK) value -= (10 + pawnPeiceSquareTable[63 -piece.Index]) ;
-                else if (piece.pieceName == PIECENAME.ROOK && piece.playerColor == PlayerColor.BLACK) value -= (50 + rookPeiceSquareTable[63 - piece.Index]);
-                else if (piece.pieceName == PIECENAME.BISHOP && piece.playerColor == PlayerColor.BLACK) value -= (30 + bishopPeiceSquareTable[63- piece.Index]);
-                else if (piece.pieceName == PIECENAME.KNIGHT && piece.playerColor == PlayerColor.BLACK) value -= (30 + knightPeiceSquareTable[63 - piece.Index]);
-                else if (piece.pieceName == PIECENAME.KING && piece.playerColor == PlayerColor.BLACK) value -= (900 + kingSquareTable[63 - piece.Index]);
-                else if (piece.pieceName == PIECENAME.QUEEN && piece.playerColor == PlayerColor.BLACK) value -= (90 + queenSquareTable[63 - piece.Index]);
-
-            }
-
+        }
+        foreach (Piece piece in Board.Instance.BlackActivePieces)
+        {
+            
+            value += (piece.PieceValue - 0.1f * piece.ValidMoves.Count);
         }
 
         return value;
         
     }
+    float DebugEvaluateBoard(Piece[] board)
+    {
 
-
-    bool CompareBoards(Piece[] Board1 , Piece[] Board2) {
-
-        for (int i =0; i < 64; i ++) 
+        float value = 0;
+        foreach (Piece piece in Board.Instance.WhiteActivePieces)
         {
-
-            if (Board1[i] != null && Board2[i] == null)
-            {
-
-                return false;
-
-            }
-            else if (Board1[i] == null && Board2[i] != null)
-            {
-
-                return false;
-
-            }
-            else if (Board1[i] != null && Board2[i] != null &&
-               (Board1[i].pieceName != Board2[i].pieceName || Board1[i].Index != Board2[i].Index || Board1[i].playerColor != Board2[i].playerColor))
-            {
-
-                return false;
-            }
-        
-        
+            PrintPiece(piece);
+            value += (piece.PieceValue);
+            if (piece.ThreatScore > 0) value -= piece.ThreatScore;
+        }
+        foreach (Piece piece in Board.Instance.BlackActivePieces)
+        {
+            PrintPiece(piece);
+            value += (piece.PieceValue);
+            if (piece.ThreatScore < 0) value -= piece.ThreatScore;
         }
 
-        return true;
-    
+        Debug.Log("Score value is :" + value);
+        return value;
+
     }
+
+    void PrintPiece(Piece p) {
+
+        string s = "PieceName :" + p.playerColor.ToString() + p.pieceName.ToString() +
+                   " Index :" + p.Index.ToString() +
+                   " ValidMoveCount :" + p.ValidMoves.Count().ToString() +
+                   " AttackingValue :" + p.AttackingMovesScore.ToString() +
+                   " ThreatValue :" + p.ThreatScore.ToString() +
+                   " Defending Value" + p.DefendingMovesScore.ToString() ;
+
+        Debug.Log(s);
+
+    }
+
+    List<Moves> moveOrdering( PlayerColor player) { 
+        
+        List<Moves> moveList = new List<Moves>();
+
+        int orderingScore;
+
+        if (player == PlayerColor.WHITE)
+        {
+
+            foreach (var p in Board.Instance.WhiteActivePieces)
+            {
+
+                foreach (Moves  i in p.ValidMoves.ToArray())
+                {
+                    moveList.Add(i);
+
+                }
+
+            }
+
+        }
+        else {
+
+            foreach (var p in Board.Instance.BlackActivePieces)
+            {
+
+                foreach (Moves i in p.ValidMoves.ToArray())
+                {
+
+                    orderingScore = 0;
+                    moveList.Add(i);
+
+                }
+
+            }
+
+        }
+
+        return moveList;
+
+    }
+
+    MoveEvaluation GetAIMove(PlayerColor playerTurn, int depth, float alpha, float beta  ) {
+
+        int originalIndex;
+
+        List<Moves> Validmoves = new List<Moves>();
+
+        MoveEvaluation node = new MoveEvaluation(0, 0, 0);
+
+        PlayerColor opponentColor = (playerTurn == PlayerColor.WHITE) ? PlayerColor.BLACK : PlayerColor.WHITE;
+
+        Board.Instance.UpdateValidMoves();
+
+        if (Board.Instance.IsCheckMateWhitePlayer())
+        {
+            return new MoveEvaluation(-9999, -1, -1);
+
+        }
+
+        else if (Board.Instance.IsCheckMateBlackPlayer())
+        {
+            return new MoveEvaluation(+9999, -1, -1);
+        }
+
+        else if (depth == -1)
+        {
+            GloabalCount++;
+            return new MoveEvaluation(EvaluateBoard(Board.Instance.ChessBoard), -1, -1);
+
+        }
+
+        Validmoves = (playerTurn == PlayerColor.WHITE) ? moveOrdering(PlayerColor.WHITE) : moveOrdering(PlayerColor.BLACK);
+
+        foreach (Moves i in Validmoves)
+        {
+
+        }
+
+
+
+        }
 }

@@ -155,7 +155,7 @@ public class HumanPlayer : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.BLACK &&
-            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x == hit.collider.transform.gameObject.GetComponent<Piece>().Index) == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue)
             )
             {
@@ -197,7 +197,8 @@ public class HumanPlayer : MonoBehaviour
                (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue))
             {
 
-                GameManagerAI.Instance.OnePieceOrganize(player, hit.collider.gameObject.GetComponent<Piece>().pieceName, GameManagerMultiplayer.Instance.PawntoQueenIndex);
+                Debug.Log("pawn to queen :" + hit.collider.GetComponent<Piece>().pieceName);
+                GameManagerAI.Instance.OnePieceOrganize(player, hit.collider.gameObject.GetComponent<Piece>().pieceName, GameManagerAI.Instance.PawntoQueenIndex);
                 GameManagerAI.Instance.ChangeBoardState(BOARDSTATUS.IS_CHECK_BLACK_PLAYER);
                 GameManagerAI.Instance.IsCheckBlackPlayer();
 
@@ -290,7 +291,6 @@ public class HumanPlayer : MonoBehaviour
                 else
                 {
 
-
                     GameManagerAI.Instance.IsCheckWhitePlayer();
                     //Player.Instance.player = PlayerColor.WHITE;
 
@@ -301,7 +301,7 @@ public class HumanPlayer : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.WHITE &&
-            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x == hit.collider.transform.gameObject.GetComponent<Piece>().Index) == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue))
             {
 
@@ -344,7 +344,7 @@ public class HumanPlayer : MonoBehaviour
                (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue))
             {
 
-                GameManagerAI.Instance.OnePieceOrganize(player, hit.collider.gameObject.GetComponent<Piece>().pieceName, GameManagerMultiplayer.Instance.PawntoQueenIndex);
+                GameManagerAI.Instance.OnePieceOrganize(player, hit.collider.gameObject.GetComponent<Piece>().pieceName, GameManagerAI.Instance.PawntoQueenIndex);
                 GameManagerAI.Instance.ChangeBoardState(BOARDSTATUS.IS_CHECK_WHITE_PLAYER);
                 GameManagerAI.Instance.IsCheckWhitePlayer();
 

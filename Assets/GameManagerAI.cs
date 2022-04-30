@@ -50,13 +50,13 @@ public class GameManagerAI : GameManagerBase
 
         selectedPieceValidMoves = HumanPlayer.Instance.SelectedObject.GetComponent<Piece>().CalculateValidMoves();
 
-        foreach (int i in selectedPieceValidMoves)
+        foreach (Moves  i in selectedPieceValidMoves)
         {
 
             GameObject validBox = ObjectPool.instance.GetPooledObject();
 
-            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i);
-            validBox.GetComponent<ValidBox>().ValidIndex = i;
+            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i.Destination);
+            validBox.GetComponent<ValidBox>().ValidIndex = i.Destination;
         }
 
     }
@@ -89,12 +89,13 @@ public class GameManagerAI : GameManagerBase
     public override void IsWhitePawnToQueen(int index)
     {
         //UIManager.Instance.DebugBannerUpdate("Move indes is " + index);
+
         if (HumanPlayer.Instance.player == PlayerColor.WHITE && (int)(index / 8) == 7)
         {
             GameManagerAI.Instance.ChangeBoardState(BOARDSTATUS.WHITE_PAWN_TO_QUEEN);
             PawntoQueenIndex = index;
             UIManagerVR.Instance.WhiteDeckOn();
-
+            Debug.Log(" @@@@@ White Pawn to Queen True");
 
 
         }

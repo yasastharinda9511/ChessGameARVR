@@ -158,7 +158,7 @@ public class Player : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.BLACK &&
-            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x == hit.collider.transform.gameObject.GetComponent<Piece>().Index) == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue)
             )
             {
@@ -304,7 +304,7 @@ public class Player : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.WHITE &&
-            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x == hit.collider.transform.gameObject.GetComponent<Piece>().Index) == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue))
             {
 

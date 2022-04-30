@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class Knight : Piece
 {
-    public override List<int> CalculateValidMoves()
+    public override List<Moves> CalculateValidMoves()
     {
+
         ValidMoves.Clear();
         checkLShape();
         return ValidMoves;
@@ -136,57 +137,72 @@ public class Knight : Piece
     void checkLShape()
     {
 
-        if (CheckInSameRow(Index + 1, Index) && Index + 17 <= 63)
+        if (CheckInSameRow(Index + 1, Index) )
         {
 
-            if (!CheckSameColorPiece(Index + 17)) AddIndex(Index + 17);//ValidMoves.Add(Index + 17);
+            if ((Index + 17 <= 63))
+            {
 
+                UpdateValidMoves(Index + 17);
+
+            }  
+            if ((Index - 15 >= 0))
+            {
+
+                UpdateValidMoves(Index - 15);
+
+            }  
         }
 
-        if (CheckInSameRow(Index - 1, Index) && Index + 15 <= 63)
+        if (CheckInSameRow(Index - 1, Index))
         {
 
-            if (!CheckSameColorPiece(Index + 15)) AddIndex(Index + 15);//ValidMoves.Add(Index + 15);
+            if (Index + 15 <= 63) 
+            {
 
+                UpdateValidMoves(Index + 15);
+            }
+
+            //ValidMoves.Add(Index + 15);
+            if (Index - 17 >= 0 )
+            {
+                UpdateValidMoves(Index - 17);
+
+            }
+            
         }
 
-        if (CheckInSameRow(Index + 1, Index) && Index - 15 >= 0)
+        if (CheckInSameRow(Index + 2, Index))
         {
 
-            if (!CheckSameColorPiece(Index - 15)) AddIndex(Index - 15);//ValidMoves.Add(Index - 15);
+            if (Index + 10 <= 63 ) {
 
+                UpdateValidMoves(Index + 10);
+
+            }
+            //ValidMoves.Add(Index + 10);
+            if (Index - 6 >= 0  && !CheckInSameRow(Index - 6, Index)) {
+
+                UpdateValidMoves(Index - 6);
+
+            }
+            
         }
 
-        if (CheckInSameRow(Index - 1, Index) && Index - 17 >= 0)
+        if (CheckInSameRow(Index - 2, Index) )
         {
 
-            if (!CheckSameColorPiece(Index - 17)) AddIndex(Index - 17);//ValidMoves.Add(Index - 17);
-        }
+            if (Index + 6 <= 63 && !CheckInSameRow(Index + 6, Index))
+            {
+                UpdateValidMoves(Index + 6);
 
-        if (CheckInSameRow(Index + 2, Index) && Index + 10 <= 63)
-        {
+            }
+            //ValidMoves.Add(Index + 6);
+            if (Index - 10 >= 0) {
 
-            if (!CheckSameColorPiece(Index + 10)) AddIndex(Index + 10);//ValidMoves.Add(Index + 10);
-                    
-        }
+                UpdateValidMoves(Index - 10);
 
-        if (CheckInSameRow(Index - 2, Index) && Index + 6 <= 63 && !CheckInSameRow(Index + 6, Index))
-        {
-
-            if (!CheckSameColorPiece(Index + 6)) AddIndex(Index + 6); //ValidMoves.Add(Index + 6);
-
-        }
-
-        if (CheckInSameRow(Index + 2, Index) && Index - 6 >= 0 && !CheckInSameRow(Index - 6, Index))
-        {
-
-            if (!CheckSameColorPiece(Index - 6)) AddIndex(Index - 6);//ValidMoves.Add(Index - 6);
-        }
-
-        if (CheckInSameRow(Index - 2, Index) && Index - 10 >= 0)
-        {
-
-            if (!CheckSameColorPiece(Index - 10)) AddIndex(Index - 10);//ValidMoves.Add(Index - 10);
+            } 
         }
 
     }
@@ -264,4 +280,23 @@ public class Knight : Piece
 
     }
 
+    public void UpdateValidMoves(int index)
+    {
+        if (Board.Instance.ChessBoard[index] != null && 
+            Board.Instance.ChessBoard[index].playerColor != this.playerColor)
+        {
+            AddIndex(index , MOVETYPE.ATTACKING);
+        }
+        else if (Board.Instance.ChessBoard[index] != null && 
+                 Board.Instance.ChessBoard[index].playerColor == this.playerColor)
+        {
+
+            this.DefendingMovesScore += Board.Instance.ChessBoard[index].PieceThreatCoef;
+            
+        }
+        else
+        {
+            AddIndex(index, MOVETYPE.FREE);
+        }
+    }
 }

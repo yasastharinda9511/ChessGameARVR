@@ -51,6 +51,20 @@ public enum PIECENAME {
     KNIGHT,
     BISHOP,
     QUEEN,
-    KING
+    KING,
+    NOPIECE 
+
   
+}
+
+public enum MOVETYPE { 
+    
+    PAWN_PROMOTION,
+    KING_CASTLING_WHITE_LEFT,
+    KING_CASTLING_WHITE_RIGHT,
+    KING_CASTLING_BLACK_LEFT,
+    KING_CASTLING_BLACK_RIGHT,
+    ATTACKING,
+    FREE
+
 }
