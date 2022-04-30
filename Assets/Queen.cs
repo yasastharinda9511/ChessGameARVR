@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class Queen : Piece
 {
+
+    public Queen(PlayerColor playerColor , int index) : base(playerColor , index )
+    {
+
+        this.pieceName = PIECENAME.QUEEN;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 90 : -90;
+        this.AbsPieceValue = 90;
+        this.PieceThreatCoef = 1;
+
+    }
     public override IEnumerator Move(int index)
     {
         MoveCoroute = false;

@@ -13,6 +13,15 @@ public class King : Piece
     }
 
     CASTLINGTYPE castling;
+
+    public King(PlayerColor playerColor , int index) : base(playerColor , index) {
+
+        this.pieceName = PIECENAME.KING;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 900 : -900;
+        this.AbsPieceValue = 900;
+        this.PieceThreatCoef = 1;
+
+    }
     public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();

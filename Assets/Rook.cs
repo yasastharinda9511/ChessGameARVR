@@ -4,6 +4,14 @@ using UnityEngine;
 
 public class Rook : Piece
 {
+
+    public Rook(PlayerColor playerColor, int index) : base (playerColor , index)
+    {
+        this.pieceName = PIECENAME.ROOK;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 50 : -50;
+        this.AbsPieceValue = 50;
+        this.PieceThreatCoef = 1;
+    }
     public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();

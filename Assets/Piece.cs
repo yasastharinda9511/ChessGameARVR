@@ -55,6 +55,16 @@ public abstract class Piece : MonoBehaviour
         DefendingMovesScore = 0;
 
     }
+
+    public Piece(PlayerColor playerColor, int index) {
+
+        this.playerColor = playerColor;
+        this.Index = index;
+        ValidMoves = new List<Moves>();
+        isFirstMove = false;
+        opponentActivePieces = new List<Piece>();
+
+    }
     public Vector3 GlobaCoordinates()
     {
 

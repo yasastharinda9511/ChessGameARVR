@@ -480,6 +480,13 @@ public class AIPlayer : MonoBehaviour
 
         Board.Instance.UpdateValidMoves();
 
+        float maxValue = float.MinValue;
+        float minValue = float.MaxValue;
+
+        Piece originalPiece = null;
+        bool IsFirstMove;
+        MoveEvaluation move;
+
         if (Board.Instance.IsCheckMateWhitePlayer())
         {
             return new MoveEvaluation(-9999, -1, -1);
@@ -502,10 +509,135 @@ public class AIPlayer : MonoBehaviour
 
         foreach (Moves i in Validmoves)
         {
+            ulong prevHash = Board.Instance.GetHashValue();
+
+            Board.Instance.UpdateHashValue(i.Source, i.Destination);
+
+            if (Board.Instance.ChessBoard[i.Destination] != null)
+            {
+
+                originalPiece = Board.Instance.ChessBoard[i.Destination];
+                Board.Instance.RemoveActivePiece(originalPiece);
+
+            }
+            else originalPiece = null;
+
+            Board.Instance.ChessBoard[i.Destination] = Board.Instance.ChessBoard[i.Source];
+            Board.Instance.ChessBoard[i.Source] = null;
+
+            originalIndex = Board.Instance.ChessBoard[i.Destination].Index;
+            IsFirstMove = Board.Instance.ChessBoard[i.Destination].isFirstMove;
+
+            Board.Instance.ChessBoard[i.Destination].Index = i.Destination;
+            Board.Instance.ChessBoard[i.Destination].isFirstMove = false;
+
+            move = GetMove(opponentColor, depth - 1, alpha, beta);
+
+            //Debug.Log("white move evaluation value is :" + move.EvaluationValue);
+            beta = Mathf.Min(beta, move.EvaluationValue);
+            minValue = Mathf.Min(minValue, move.EvaluationValue);
+
+            //Debug.Log("######## Black values :" + move.EvaluationValue);
+
+            if (minValue == move.EvaluationValue)
+            {
+                node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
+            }
+
+            Board.Instance.ChessBoard[i.Source] = Board.Instance.ChessBoard[i.Destination];
+
+            Board.Instance.ChessBoard[i.Source].Index = i.Source;
+            Board.Instance.ChessBoard[i.Source].isFirstMove = IsFirstMove;
+
+            Board.Instance.ChessBoard[i.Destination] = originalPiece;
+
+            //Debug.Log(Board.Instance.PrintBoard());
+
+            if (originalPiece != null)
+            {
+
+                Board.Instance.AddActivePiece(originalPiece);
+
+            }
+
+            if (move.EvaluationValue <= alpha)
+            {
+
+                break;
+
+            }
 
         }
 
 
+        return node;
+
+    }
+
+    void DoMove (Moves move , PlayerColor playerTurn)
+    {
+
+        Piece originalPiece;
+
+        if (Board.Instance.ChessBoard[move.Destination] != null)
+        {
+
+            originalPiece = Board.Instance.ChessBoard[move.Destination];
+            Board.Instance.RemoveActivePiece(originalPiece);
 
         }
+        else originalPiece = null;
+
+
+        if (move.MoveType == MOVETYPE.PAWN_PROMOTION)
+        {
+
+            Piece promotedPiece;
+            Piece promotedPawn;
+            PIECENAME[] promotedTypes = new PIECENAME[4] { PIECENAME.QUEEN, PIECENAME.ROOK, PIECENAME.KNIGHT, PIECENAME.BISHOP };
+
+            promotedPawn = Board.Instance.ChessBoard[move.Source];
+
+            Board.Instance.RemoveActivePiece(Board.Instance.ChessBoard[move.Source]);
+
+            foreach (PIECENAME p in promotedTypes)
+            {
+
+                switch (p)
+                {
+                    case PIECENAME.ROOK:
+                        promotedPiece = new Rook(playerColor: playerTurn, index: move.Destination);
+                        break;
+                    case PIECENAME.QUEEN:
+                        promotedPiece = new Queen(playerColor: playerTurn, index: move.Destination);
+                        break;
+                    case PIECENAME.KNIGHT:
+                        promotedPiece = new Knight(playerColor: playerTurn, index: move.Destination);
+                        break;
+                    case PIECENAME.BISHOP:
+                        promotedPiece = new Bishop(playerColor: playerTurn, index: move.Destination);
+                        break;
+
+                }
+
+
+
+            }
+
+        }
+        else if (move.MoveType == MOVETYPE.FREE)
+        {
+
+
+
+        }
+        else if (move.MoveType == MOVETYPE.ATTACKING)
+        { 
+        
+        
+        }
+
+
+    }
+
 }

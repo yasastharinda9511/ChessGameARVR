@@ -6,6 +6,16 @@ public class Bishop : Piece
 {
 
     private const int scoreValue = 30;
+
+    public Bishop(PlayerColor playerColor , int index) : base(playerColor , index)
+    {
+
+        this.pieceName = PIECENAME.BISHOP;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 30 : -30;
+        this.AbsPieceValue = 30;
+        this.PieceThreatCoef = 1;
+
+    }
     public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
