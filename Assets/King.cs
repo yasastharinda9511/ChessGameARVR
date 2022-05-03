@@ -250,7 +250,7 @@ public class King : Piece
             )
         {
 
-            if (ValidMoves.Find(x => x.Destination == 59).Destination == 59) {
+            if (ValidMoves.Find(x => x.Destination == 59) != null) {
 
                 AddIndex(58 , MOVETYPE.KING_CASTLING_BLACK_LEFT);
                 castling = CASTLINGTYPE.BLACK_LEFT;
