@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class Pawn : Piece
 {
+    public Pawn(PlayerColor playerColor, int index) : base(playerColor, index) {
+
+        this.pieceName = PIECENAME.PAWN;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 10 : -10;
+        this.AbsPieceValue = 10;
+        this.PieceThreatCoef = 1;
+
+    }
+
     public override void ChangePosition(int index) 
     {
 

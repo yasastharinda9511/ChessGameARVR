@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class Knight : Piece
 {
+    public Knight(PlayerColor playerColor, int index) : base(playerColor, index)
+    {
+        this.pieceName = PIECENAME.KING;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 30 : -30;
+        this.AbsPieceValue = 30;
+        this.PieceThreatCoef = 1;
+    }
+
+
     public override List<Moves> CalculateValidMoves()
     {
 

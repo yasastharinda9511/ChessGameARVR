@@ -53,6 +53,17 @@ public abstract class Piece : MonoBehaviour
         speed = .5f;
         AttackingMovesScore = 0;
         DefendingMovesScore = 0;
+        isFirstMove = true;
+
+    }
+
+    public Piece(PlayerColor playerColor, int index) {
+
+        this.playerColor = playerColor;
+        this.Index = index;
+        ValidMoves = new List<Moves>();
+        isFirstMove = true;
+        opponentActivePieces = new List<Piece>();
 
     }
     public Vector3 GlobaCoordinates()
@@ -180,13 +191,12 @@ public abstract class Piece : MonoBehaviour
                 this.AttackingMovesScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
                 Board.Instance.ChessBoard[index].ThreatScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
 
-                ValidMoves.Add(new Moves(this.Index,  index , MOVETYPE.ATTACKING , Board.Instance.ChessBoard[index].pieceName));
+                ValidMoves.Add(new Moves(this.Index,  index , MOVETYPE.ATTACKING , Board.Instance.ChessBoard[index].pieceName , PIECENAME.NOPIECE));
 
             }
 
-            ValidMoves.Add(new Moves(this.Index, index, MOVETYPE.FREE, PIECENAME.NOPIECE));
+            ValidMoves.Add(new Moves(this.Index, index, moveType , PIECENAME.NOPIECE , PIECENAME.NOPIECE));
         }
-
 
     }
 

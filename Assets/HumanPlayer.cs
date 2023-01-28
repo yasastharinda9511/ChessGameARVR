@@ -77,7 +77,8 @@ public class HumanPlayer : MonoBehaviour
     void Update()
     {
 
-        collide = trackingHand.GetComponent<XRRayInteractor>().TryGetCurrent3DRaycastHit(out hit);
+        //collide = trackingHand.GetComponent<XRRayInteractor>().TryGetCurrent3DRaycastHit(out hit);
+        collide = Physics.Raycast(trackingHand.transform.position, trackingHand.transform.forward , out hit);
 
         if (GameManagerAI.Instance != null &&
             player == PlayerColor.WHITE &&
@@ -155,7 +156,8 @@ public class HumanPlayer : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.BLACK &&
-            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject != null &&
+            SelectedObject.gameObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index) != null &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue)
             )
             {
@@ -301,7 +303,8 @@ public class HumanPlayer : MonoBehaviour
             hit.collider.transform.gameObject.tag == "Piece" &&
             hit.collider.transform.gameObject.GetComponent<Piece>() != null &&
             hit.collider.transform.gameObject.GetComponent<Piece>().playerColor == PlayerColor.WHITE &&
-            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index).Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index &&
+            SelectedObject != null && 
+            SelectedObject.GetComponent<Piece>().CalculateValidMoves().Find(x => x.Destination == hit.collider.transform.gameObject.GetComponent<Piece>().Index) != null &&
             (device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.triggerButton, out triggerValue) && triggerValue))
             {
 

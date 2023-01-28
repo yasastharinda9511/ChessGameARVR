@@ -324,24 +324,18 @@ public class Board : MonoBehaviour
     public bool IsCheckMateBlackPlayer()
     {
 
-        int totalMoves = 0;
-
-        Board.Instance.playerTurn = PlayerColor.BLACK;
-
         foreach (Piece piece in Board.Instance.BlackActivePieces.ToArray())
         {
-            totalMoves += piece.ValidMoves.Count;
+            if(piece.ValidMoves.Count != 0) return false;
         }
 
-        if (IsCheck(PlayerColor.BLACK) &&  totalMoves == 0)
-        {
+        if (!(IsCheck(PlayerColor.BLACK))) {
 
-            return true;
+            return false;
+        } 
 
-        }
-        
 
-        return false;
+        return true;
 
     }
     public bool IsCheckWhitePlayer()
@@ -356,26 +350,21 @@ public class Board : MonoBehaviour
 
     public bool IsCheckMateWhitePlayer()
     {
-        int totalMoves = 0;
 
-        Board.Instance.playerTurn = PlayerColor.WHITE;
-
-        //this.ActivePiecesUpdate();
         foreach (Piece piece in Board.Instance.WhiteActivePieces.ToArray())
         {
 
-            totalMoves += piece.ValidMoves.Count;
+            if(piece.ValidMoves.Count !=0 ) return false;
 
         }
 
-        if (totalMoves == 0 && IsCheckWhitePlayer())
-        {
-
-            return true;
+        if (!IsCheck(PlayerColor.WHITE)) {
+            
+            return false;
 
         }
 
-        return false;
+        return true;
 
     }
     bool IsAdjacentColumn(int index1, int index2)
