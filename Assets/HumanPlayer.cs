@@ -65,7 +65,7 @@ public class HumanPlayer : MonoBehaviour
         Debug.Log("Initializing game manager");
 
 
-        Board.Instance.OrganizeBoard();
+        //Board.Instance.OrganizeBoard();
         this.GetInputDevice();
 
         SelectedObject = GameObject.Find("Board");

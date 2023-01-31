@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,19 +12,18 @@ public class Moves
     public PIECENAME PromotedPiece { get; set; }
     public int MoveScore { get; set; }
 
-    public Moves(int source , int destination , MOVETYPE moveType , PIECENAME attackedPiece, PIECENAME promotedPiece ) 
+    public Moves(int source , int destination , MOVETYPE moveType, PIECENAME promotedPiece ) 
     {
         this.Source = source;
         this.Destination = destination;
         this.MoveType = moveType;
 
-        this.AttackedPiece = attackedPiece;
         this.PromotedPiece = promotedPiece;
 
         if (moveType == MOVETYPE.ATTACKING)
         {
-
-            MoveScore = 100;
+            //if (Board.Instance.ChessBoard[destination] == null) Debug.Log("Null Value");
+            MoveScore = 100 + Board.Instance.ChessBoard[destination].AbsPieceValue;
 
         }
         else if (moveType == MOVETYPE.PAWN_PROMOTION)

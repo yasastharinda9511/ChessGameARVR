@@ -31,7 +31,6 @@ public class Pawn : Piece
     public override IEnumerator Move(int index)
     {
         Vector3 forward =  CalculateLocalPosition(index) - this.transform.localPosition;
-
         float cof;
 
         while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index))> 0.01f &&

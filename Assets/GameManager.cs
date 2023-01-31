@@ -28,7 +28,9 @@ public class GameManagerBase : MonoBehaviour
         ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN);
 
         playerTurn = PlayerColor.WHITE;
-        selectedPieceValidMoves = new List<Moves>() ; 
+        selectedPieceValidMoves = new List<Moves>() ;
+
+        Board.Instance.OrganizeBoard();
 
     }
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Rook : Piece
@@ -7,6 +8,7 @@ public class Rook : Piece
 
     public Rook(PlayerColor playerColor, int index) : base (playerColor , index)
     {
+        Init();
         this.pieceName = PIECENAME.ROOK;
         this.PieceValue = (playerColor == PlayerColor.WHITE) ? 50 : -50;
         this.AbsPieceValue = 50;

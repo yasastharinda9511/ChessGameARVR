@@ -4,6 +4,9 @@ using System.Linq;
 using UnityEngine;
 using System.Threading;
 using System.Text;
+using UnityEngine.Apple;
+using System.Drawing;
+using System;
 
 enum AIGameState { 
     
@@ -16,13 +19,26 @@ public struct MoveEvaluation {
     public float EvaluationValue { get; set; }
     public int Index { get; set; }
     public int GotoIndex { get; set; }
+    public bool Pawnpromotion { get; set; }
+    public PIECENAME PromotionPiece { get; set; }
 
     public MoveEvaluation(float evaluationValue , int index , int gotoindex) { 
     
         this.EvaluationValue = evaluationValue;
         this.Index = index;
         this.GotoIndex = gotoindex;
-    
+        Pawnpromotion = false;
+        PromotionPiece = PIECENAME.NOPIECE;
+    }
+
+    public MoveEvaluation(float evaluationValue, int index, int gotoindex , PIECENAME promotionPiece)
+    {
+
+        this.EvaluationValue = evaluationValue;
+        this.Index = index;
+        this.GotoIndex = gotoindex;
+        Pawnpromotion = true;
+        this.PromotionPiece = promotionPiece;
     }
 
 }
@@ -181,22 +197,19 @@ public class AIPlayer : MonoBehaviour
         // the code that you want to measure comes here
         ulong hash = Board.Instance.GetHashValue();
 
-        threadMove = GetAIMove(this.AIPlayerColor, 1 , float.MinValue, float.MaxValue);
+        threadMove = GetAIMove(this.AIPlayerColor, 3 , float.MinValue, float.MaxValue);
 
-        Debug.Log("Thread Move " + threadMove.Index + " Goto Index is " + threadMove.GotoIndex);
+        if (threadMove.Pawnpromotion) 
+        {
+            Board.Instance.ChessBoard[threadMove.Index].Eliminate();
+            Board.Instance.OnePieceOrganize(AIPlayerColor, threadMove.PromotionPiece, threadMove.GotoIndex);
+        } 
+        else Board.Instance.ChessBoard[threadMove.Index].ChangePosition(threadMove.GotoIndex);
+        
         watch.Stop();
-
         if (hash == Board.Instance.GetHashValue()) Debug.Log("Same Hash value value");
 
-        Debug.Log("@@@@@ Time taken is :" + (watch.ElapsedMilliseconds));
-
-
         Board.Instance.ActivePiecesUpdate();
-
-        Board.Instance.ChessBoard[threadMove.Index].ChangePosition(threadMove.GotoIndex);
-
-        Debug.Log("permutation count is  :" + GloabalCount);
-        Debug.Log("repeat permutations count is  :" + findInsideCount);
 
         if (AIPlayer.Instance.AIPlayerColor == PlayerColor.WHITE)
         {
@@ -210,8 +223,6 @@ public class AIPlayer : MonoBehaviour
 
         }
 
-        Debug.Log("Final Board is :" + Board.Instance.PrintBoard());
-
         Board.Instance.UpdateValidMoves();
         Debug.Log(Board.Instance.PrintBoardNow());
 
@@ -223,13 +234,13 @@ public class AIPlayer : MonoBehaviour
 
         foreach (Piece piece in Board.Instance.WhiteActivePieces)
         {
-            value += (piece.PieceValue);
+            value += (piece.PieceValue + piece.ValidMoves.Count) ;
 
         }
         foreach (Piece piece in Board.Instance.BlackActivePieces)
         {
             
-            value += (piece.PieceValue);
+            value += (piece.PieceValue - piece.ValidMoves.Count);
         }
 
         return value;
@@ -266,7 +277,7 @@ public class AIPlayer : MonoBehaviour
                    " ThreatValue :" + p.ThreatScore.ToString() +
                    " Defending Value" + p.DefendingMovesScore.ToString() ;
 
-        Debug.Log(s);
+        //Debug.Log(s);
 
     }
 
@@ -286,9 +297,10 @@ public class AIPlayer : MonoBehaviour
                 {
                     foreach (PIECENAME pro in promotedPiece) {
 
-                        moveList.Add(new Moves(source : i.Source , destination: i.Destination , moveType : i.MoveType , attackedPiece: PIECENAME.NOPIECE , promotedPiece: pro));
+                        moveList.Add(new Moves(source : i.Source , destination: i.Destination , moveType : i.MoveType , promotedPiece: pro));
 
                     }
+                    continue;
 
                 }
                 moveList.Add(i);
@@ -297,13 +309,14 @@ public class AIPlayer : MonoBehaviour
 
         }
 
-        List<Moves> orderedMoveList = moveList.OrderByDescending(x => x.MoveScore).ToList();
+        List<Moves> orderedMoveList;
+        orderedMoveList = moveList.OrderByDescending(x => x.MoveScore).ToList();
 
         return orderedMoveList;
 
     }
 
-    MoveEvaluation GetAIMove(PlayerColor playerTurn, int depth, float alpha, float beta  ) {
+    MoveEvaluation GetAIMove(PlayerColor playerTurn, int depth, float alpha, float beta ) {
 
         BoardUndoNode undoMove ;
 
@@ -327,7 +340,7 @@ public class AIPlayer : MonoBehaviour
 
         else if (Board.Instance.IsCheckMateBlackPlayer())
         {
-            return new MoveEvaluation(+9999, -1, -1);
+            return new MoveEvaluation(9999, -1, -1);
         }
 
         else if (depth == -1)
@@ -344,7 +357,6 @@ public class AIPlayer : MonoBehaviour
             foreach (Moves i in Validmoves)
             {
                 ulong prevHash = Board.Instance.GetHashValue();
-
                 undoMove = DoMove(i, playerTurn);
 
                 move = GetAIMove(opponentColor, depth - 1, alpha, beta);
@@ -354,14 +366,14 @@ public class AIPlayer : MonoBehaviour
 
                 if (maxValue == move.EvaluationValue)
                 {
-
-                    node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
+                    if(i.MoveType == MOVETYPE.PAWN_PROMOTION) node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination , i.PromotedPiece);
+                    else node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
 
                 }
 
                 UndoMove(i, undoMove);
 
-                if (beta <= move.EvaluationValue)
+                if (beta <= alpha)
                 {
 
                     break;
@@ -375,25 +387,28 @@ public class AIPlayer : MonoBehaviour
 
             foreach (Moves i in Validmoves)
             {
+                if (i.MoveType == MOVETYPE.PAWN_PROMOTION && i.PromotedPiece == PIECENAME.ROOK) continue;
+                Debug.Log(depth + " " + i.MoveType.ToString() + " " +i.Source.ToString() + " " +i.Destination.ToString());
                 ulong prevHash = Board.Instance.GetHashValue();
 
                 undoMove = DoMove(i, playerTurn);
 
                 move = GetAIMove(opponentColor, depth - 1, alpha, beta);
 
-                beta = Mathf.Min(alpha, move.EvaluationValue);
+                beta = Mathf.Min(beta, move.EvaluationValue);
                 minValue = Mathf.Min(minValue, move.EvaluationValue);
 
                 if (minValue == move.EvaluationValue)
                 {
 
-                    node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
+                    if (i.MoveType == MOVETYPE.PAWN_PROMOTION) node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination, i.PromotedPiece);
+                    else node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
 
                 }
 
                 UndoMove(i, undoMove);
 
-                if (move.EvaluationValue <= alpha)
+                if (beta <= alpha)
                 {
 
                     break;
@@ -430,34 +445,35 @@ public class AIPlayer : MonoBehaviour
             }
 
             promotedPawn = Board.Instance.ChessBoard[move.Source];
+            Board.Instance.ChessBoard[move.Source] = null;
             Board.Instance.RemoveActivePiece(promotedPawn);
 
             if (move.PromotedPiece == PIECENAME.QUEEN)
             {
-
+                Debug.Log("Queen Promote !!!");
                 promotedPiece = new Queen(playerTurn, move.Destination);
 
             }
             else if (move.PromotedPiece == PIECENAME.ROOK)
             {
-
+                Debug.Log("Rook Promote !!!");
                 promotedPiece = new Rook(playerTurn, move.Destination);
 
             }
             else if (move.PromotedPiece == PIECENAME.KNIGHT)
             {
-
+                Debug.Log("Knight Promote !!!");
                 promotedPiece = new Knight(playerTurn, move.Destination);
 
             } else if (move.PromotedPiece == PIECENAME.BISHOP)
             {
-
+                Debug.Log("Bihop Promote !!!");
                 promotedPiece = new Bishop(playerTurn , move.Destination);
             
             }
-
             Board.Instance.ChessBoard[move.Destination] = promotedPiece;
             Board.Instance.AddActivePiece(promotedPiece);
+            Debug.Log(Board.Instance.PrintBoard());
 
         }
         else if (move.MoveType == MOVETYPE.FREE)
@@ -574,8 +590,10 @@ public class AIPlayer : MonoBehaviour
                 Board.Instance.RemoveActivePiece(Board.Instance.ChessBoard[move.Destination]);
 
             }
-
+            List<Piece> activePieces = (Board.Instance.ChessBoard[move.Destination].playerColor == PlayerColor.WHITE) ?  Board.Instance.WhiteActivePieces : Board.Instance.BlackActivePieces;
+            activePieces.Remove(Board.Instance.ChessBoard[move.Destination]);
             Board.Instance.ChessBoard[move.Source] = undoNode.PromotedPawnPiece;
+            activePieces.Add(undoNode.PromotedPawnPiece);
             Board.Instance.ChessBoard[move.Destination] = undoNode.EliminatedPiece;
 
         }

@@ -28,6 +28,8 @@ public class Bishop : Piece
         Vector3 forward = CalculateLocalPosition(index) - this.transform.localPosition;
         float cof;
 
+        speed = Vector3.Magnitude(CalculateLocalPosition(0) - CalculateLocalPosition(2)) / 100;
+
         if (this.isFirstMove) isFirstMove = false;
 
         while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f &&
@@ -90,6 +92,7 @@ public class Bishop : Piece
                 {
                     if ((i == 7 || i == -7) && CheckAdjacentDiagonal(index, prevIndex) && InsideTheBoard(index))
                     {
+
                         AddIndex(index , MOVETYPE.ATTACKING);
                         //ValidMoves.Add(index);
                     }

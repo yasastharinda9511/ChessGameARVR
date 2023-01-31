@@ -43,6 +43,12 @@ public abstract class Piece : MonoBehaviour
 
     private void Start()
     {
+        Init();
+    }
+
+    public virtual void Init() 
+    {
+
         EleminationStage = (playerColor == PlayerColor.WHITE) ? GameObject.Find("WhiteEliminateStage") : GameObject.Find("BlackEliminateStage");
 
         if (EleminationStage == null) Debug.Log("No eleimination stage is found");
@@ -50,7 +56,7 @@ public abstract class Piece : MonoBehaviour
         ValidMoves = new List<Moves>();
         opponentActivePieces = new List<Piece>();
 
-        speed = .5f;
+        speed = Vector3.Magnitude(CalculateLocalPosition(0) - CalculateLocalPosition(2)) / 100;
         AttackingMovesScore = 0;
         DefendingMovesScore = 0;
         isFirstMove = true;
@@ -191,11 +197,11 @@ public abstract class Piece : MonoBehaviour
                 this.AttackingMovesScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
                 Board.Instance.ChessBoard[index].ThreatScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
 
-                ValidMoves.Add(new Moves(this.Index,  index , MOVETYPE.ATTACKING , Board.Instance.ChessBoard[index].pieceName , PIECENAME.NOPIECE));
+                ValidMoves.Add(new Moves(this.Index,  index , MOVETYPE.ATTACKING , PIECENAME.NOPIECE));
 
             }
 
-            ValidMoves.Add(new Moves(this.Index, index, moveType , PIECENAME.NOPIECE , PIECENAME.NOPIECE));
+            ValidMoves.Add(new Moves(this.Index, index, moveType , PIECENAME.NOPIECE));
         }
 
     }
@@ -295,6 +301,23 @@ public abstract class Piece : MonoBehaviour
         string status = "PiecName" + playerColor.ToString() + pieceName + " Index " + Index + "ValidMoves" + PrintValidMoves();
 
         return status;
+    }
+
+    public void ShowValidMoves() 
+    {
+        CalculateValidMoves();
+        if (ValidMoves == null) return;
+
+        foreach (var i in ValidMoves)
+        {
+
+            GameObject validBox = ObjectPool.instance.GetPooledObject();
+
+            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i.Destination);
+            validBox.GetComponent<ValidBox>().ValidIndex = i.Destination;
+
+        }
+        
     }
 
 }
