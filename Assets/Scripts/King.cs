@@ -22,6 +22,14 @@ public class King : Piece
         this.PieceThreatCoef = 1;
 
     }
+    public King(PlayerColor playerColor , int index , KingModel kingModel) : base(playerColor , index, kingModel) {
+
+        this.pieceName = PIECENAME.KING;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 900 : -900;
+        this.AbsPieceValue = 900;
+        this.PieceThreatCoef = 1;
+
+    }
     public override List<Moves> CalculateValidMoves()
     {
         ValidMoves.Clear();
@@ -75,34 +83,6 @@ public class King : Piece
         }
 
     }
-    public override IEnumerator Move(int index)
-    {
-        MoveCoroute = false;
-        Vector3 forward = CalculateLocalPosition(index) - this.transform.localPosition;
-        float cof;
-
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index)) > 0.01f && 
-               Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0)
-        {
-
-            cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 1.5f) ? 1.5f : cof;
-
-            this.transform.Translate(forward * Time.deltaTime * cof * speed);
-            yield return null;
-
-        }
-
-        this.transform.localPosition = CalculateLocalPosition(index);
-
-        MoveCoroute = false;
-        yield return null;
-    }
-    public override void SelectChangeMaterial()
-    {
-        throw new System.NotImplementedException();
-    }
-
     void checkSingleAllDirections()
     {
 
@@ -116,63 +96,19 @@ public class King : Piece
 
             if (Board.Instance.ChessBoard[Index + i] == null)
             {
-                if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index))
-                {
-                    AddIndex(Index + i , MOVETYPE.FREE);
-                    // ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 8 || i == -8) && CheckInSameColumn(Index + i, Index) && IsAdjacentRow(Index + i, Index))
-                {
-                    AddIndex(Index + i , MOVETYPE.FREE);
-                    //ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 7 || i == -7) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index))
-                {
-                    AddIndex(Index + i , MOVETYPE.FREE);
-                    //ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 9 || i == -9) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index))
-                {
-                    AddIndex(Index + i , MOVETYPE.FREE);
-                    //ValidMoves.Add(Index + i);
-
-                }
+                if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index)) AddMove(new FreeMove(Index, Index + i));
+                else if ((i == 8 || i == -8) && CheckInSameColumn(Index + i, Index) && IsAdjacentRow(Index + i, Index)) AddMove(new FreeMove(Index, Index + i));
+                else if ((i == 7 || i == -7) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index)) AddMove(new FreeMove(Index, Index + i));
+                else if ((i == 9 || i == -9) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index)) AddMove(new FreeMove(Index, Index + i));
 
             }
-            else if (Board.Instance.ChessBoard[Index + i] != null && Board.Instance.ChessBoard[Index + i].playerColor != playerColor)
+            else if (Board.Instance.ChessBoard[Index + i] != null && Board.Instance.ChessBoard[Index + i].playerColor != playerColor) 
             {
 
-                if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index))
-                {
-                    //AddIndex(Index + i);
-                     AddIndex(Index + i , MOVETYPE.ATTACKING);
-                    //ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 8 || i == -8) && CheckInSameColumn(Index + i, Index) && IsAdjacentRow(Index + i, Index))
-                {
-                    //AddIndex(Index + i);
-                    AddIndex(Index + i , MOVETYPE.ATTACKING);
-                    //ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 7 || i == -7) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index))
-                {
-                    //AddIndex(Index + i);
-                    AddIndex(Index + i , MOVETYPE.ATTACKING);
-                    //ValidMoves.Add(Index + i);
-
-                }
-                else if ((i == 9 || i == -9) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index))
-                {
-                    //AddIndex(Index + i);
-                    AddIndex(Index + i, MOVETYPE.ATTACKING);
-                    //ValidMoves.Add(Index + i);
-
-                }
+                if ((i == 1 || i == -1) && IsAdjacentColumn(Index + i, Index) && CheckInSameRow(Index + i, Index)) AddMove(new AttackMove(Index , Index + i));
+                else if ((i == 8 || i == -8) && CheckInSameColumn(Index + i, Index) && IsAdjacentRow(Index + i, Index)) AddMove(new AttackMove(Index, Index + i));
+                else if ((i == 7 || i == -7) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index)) AddMove(new AttackMove(Index, Index + i));
+                else if ((i == 9 || i == -9) && IsAdjacentRow(Index + i, Index) && IsAdjacentColumn(Index + i, Index)) AddMove(new AttackMove(Index, Index + i));
 
             }
 
@@ -202,7 +138,7 @@ public class King : Piece
         {
 
             if (ValidMoves.Find(x => x.Destination == 3) != null) {
-                AddIndex(2 , MOVETYPE.KING_CASTLING_WHITE_LEFT);
+                AddMove(new KingCastlingMove(Index, 2, MOVETYPE.KING_CASTLING_WHITE_LEFT));
                 castling = CASTLINGTYPE.WHITE_LEFT;
 
             } 
@@ -226,7 +162,7 @@ public class King : Piece
 
             if (ValidMoves.Find(x => x.Destination == 5) != null) {
 
-                AddIndex(6 , MOVETYPE.KING_CASTLING_WHITE_RIGHT);
+                AddMove(new KingCastlingMove(Index, 6, MOVETYPE.KING_CASTLING_WHITE_RIGHT));
                 castling = CASTLINGTYPE.WHITE_RIGHT;
             }
             
@@ -252,7 +188,7 @@ public class King : Piece
 
             if (ValidMoves.Find(x => x.Destination == 59) != null) {
 
-                AddIndex(58 , MOVETYPE.KING_CASTLING_BLACK_LEFT);
+                AddMove(new KingCastlingMove(Index, 58, MOVETYPE.KING_CASTLING_BLACK_LEFT));
                 castling = CASTLINGTYPE.BLACK_LEFT;
             }
             
@@ -274,7 +210,7 @@ public class King : Piece
         {
             if (ValidMoves.Find(x => x.Destination == 61) != null) {
 
-                AddIndex(62 , MOVETYPE.KING_CASTLING_BLACK_RIGHT);
+                AddMove(new KingCastlingMove(Index, 62, MOVETYPE.KING_CASTLING_BLACK_RIGHT));
                 castling = CASTLINGTYPE.BLACK_RIGHT;
             }
 

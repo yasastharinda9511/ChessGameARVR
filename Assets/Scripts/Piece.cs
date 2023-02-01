@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
-public abstract class Piece : MonoBehaviour
+public abstract class Piece
 {
     public PlayerColor playerColor { get; set; }
-
     public PIECENAME pieceName { get; set; }
-
-    private GameObject EleminationStage;
+    public PieceModel PieceModel { get; set; }
     public bool IsCastling { get; set; }
-
-    protected int prevIndex;
-
-    [SerializeField]
-    protected List<MoveDirection> directions;
+    public int PrevIndex { get; set; }
     public List<Moves> ValidMoves { get; set; }
     public bool isFirstMove { get; set; } = true;
 
@@ -26,12 +21,7 @@ public abstract class Piece : MonoBehaviour
 
     public bool MoveCoroute { get; set; }
 
-    public abstract IEnumerator Move(int index);
-    public abstract void SelectChangeMaterial();
-
     public abstract List<Moves> CalculateValidMoves();
-
-    public static List<Piece> opponentActivePieces;
 
     protected float speed;
 
@@ -41,35 +31,23 @@ public abstract class Piece : MonoBehaviour
 
     public float PieceThreatCoef { get; set; }
 
-    private void Start()
-    {
-        Init();
-    }
-
-    public virtual void Init() 
-    {
-
-        EleminationStage = (playerColor == PlayerColor.WHITE) ? GameObject.Find("WhiteEliminateStage") : GameObject.Find("BlackEliminateStage");
-
-        if (EleminationStage == null) Debug.Log("No eleimination stage is found");
-
-        ValidMoves = new List<Moves>();
-        opponentActivePieces = new List<Piece>();
-
-        speed = Vector3.Magnitude(CalculateLocalPosition(0) - CalculateLocalPosition(2)) / 100;
-        AttackingMovesScore = 0;
-        DefendingMovesScore = 0;
-        isFirstMove = true;
-
-    }
-
     public Piece(PlayerColor playerColor, int index) {
 
         this.playerColor = playerColor;
         this.Index = index;
         ValidMoves = new List<Moves>();
         isFirstMove = true;
-        opponentActivePieces = new List<Piece>();
+        PieceModel = null;
+
+    }
+
+    public Piece(PlayerColor playerColor, int index , PieceModel pieceModel) 
+    {
+        this.playerColor = playerColor;
+        this.Index = index;
+        ValidMoves = new List<Moves>();
+        isFirstMove = true;
+        PieceModel = pieceModel;
 
     }
     public Vector3 GlobaCoordinates()
@@ -83,12 +61,6 @@ public abstract class Piece : MonoBehaviour
     {
 
         return playerColor;
-
-    }
-    public List<MoveDirection> GetAllMoveDirections()
-    {
-
-        return directions;
 
     }
     protected bool CheckInSameRow(int index1, int index2)
@@ -140,6 +112,8 @@ public abstract class Piece : MonoBehaviour
 
     }
 
+    protected int ColomnDifference(int index1 , int index2) => Mathf.Abs((int)(index1 % 8) - ((int)(index2 % 8)));
+    protected int RowDifference(int index1 , int index2) => Mathf.Abs((int)(index1 / 8) - ((int)(index2 / 8)));
 
     protected bool CheckSameColorPiece(int index)
     {
@@ -159,51 +133,20 @@ public abstract class Piece : MonoBehaviour
 
     }
 
-    protected Vector3 CalculateLocalPosition(int index)
-    {
-
-        return new Vector3(5.25f, 0, -5.25f) + new Vector3((int)(index / 8) * -1.5f, 0, (int)(index % 8) * 1.5f);
-
-    }
-
-    protected Vector3 CalculateGlobalPosition(int index)
-    {
-
-        return transform.TransformPoint(CalculateLocalPosition(index));
-
-    }
-
     public void Eliminate()
     {
-
-        EleminationStage = (playerColor == PlayerColor.WHITE) ? GameObject.Find("WhiteEliminateStage") : GameObject.Find("BlackEliminateStage");
-
+        Board.Instance.ChessBoard[Index] = null;
         Board.Instance.RemoveActivePiece(this);
 
-        EleminationStage.GetComponent<EliminatePieceorganize>().PushEliminatePiece(this.transform.gameObject);
-        Destroy(this);
-
-        //Destroy(this.transform.gameObject);
+        PieceModel.Eleminate();
     }
 
-    protected void AddIndex(int index , MOVETYPE moveType)
+
+    public void AddMove(Moves move) 
     {
-
-        if (CheckPinMove(index))
-        {
-            if (moveType == MOVETYPE.ATTACKING)
-            {
-                
-                this.AttackingMovesScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
-                Board.Instance.ChessBoard[index].ThreatScore = this.PieceValue + Board.Instance.ChessBoard[index].PieceValue;
-
-                ValidMoves.Add(new Moves(this.Index,  index , MOVETYPE.ATTACKING , PIECENAME.NOPIECE));
-
-            }
-
-            ValidMoves.Add(new Moves(this.Index, index, moveType , PIECENAME.NOPIECE));
-        }
-
+        move.DoMove();
+        if(!Board.Instance.IsCheck(this.playerColor)) ValidMoves.Add(move);
+        move.UndoMove();
     }
 
 
@@ -221,14 +164,10 @@ public abstract class Piece : MonoBehaviour
         }
         else originalPiece = null;
 
-        //Board.Instance.RemoveActivePiece(this);
-
         Board.Instance.ChessBoard[index] = this;
         Board.Instance.ChessBoard[this.Index] = null;
         int originalIndex = this.Index;
         Board.Instance.ChessBoard[index].Index = index;
-
-        //Board.Instance.AddActivePiece(this);
         val = Board.Instance.IsCheck(this.playerColor);
 
         if (originalPiece != null)
@@ -238,13 +177,9 @@ public abstract class Piece : MonoBehaviour
 
         }
 
-        //Board.Instance.RemoveActivePiece(this);
-
         Board.Instance.ChessBoard[index] = originalPiece;
         Board.Instance.ChessBoard[originalIndex] = this;
         this.Index = originalIndex;
-
-        //Board.Instance.AddActivePiece(this);
 
         return !val;
 
@@ -266,15 +201,15 @@ public abstract class Piece : MonoBehaviour
 
         Board.Instance.ChessBoard[index] = this;
         Board.Instance.ChessBoard[this.Index] = null;
-        prevIndex = this.Index;
+        PrevIndex = this.Index;
 
         Board.Instance.ChessBoard[index].Index = index;
 
-        this.transform.gameObject.GetComponent<Piece>().Index = index;
+        Index = index;
 
         if (this.isFirstMove) isFirstMove = false;
 
-        StartCoroutine(this.Move(index));
+        PieceModel.Move(index);
 
     }
 
@@ -301,23 +236,6 @@ public abstract class Piece : MonoBehaviour
         string status = "PiecName" + playerColor.ToString() + pieceName + " Index " + Index + "ValidMoves" + PrintValidMoves();
 
         return status;
-    }
-
-    public void ShowValidMoves() 
-    {
-        CalculateValidMoves();
-        if (ValidMoves == null) return;
-
-        foreach (var i in ValidMoves)
-        {
-
-            GameObject validBox = ObjectPool.instance.GetPooledObject();
-
-            validBox.transform.localPosition = Board.Instance.CalculateLocalPosition(i.Destination);
-            validBox.GetComponent<ValidBox>().ValidIndex = i.Destination;
-
-        }
-        
     }
 
 }

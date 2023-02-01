@@ -13,31 +13,31 @@ public class PlayerBase : MonoBehaviour
     protected PlayerColor player;
     GameObject selectedObject;
 
-    Piece selecetedPiece;
+    PieceModel selecetedPiece;
     int goToIndex;
 
     public void ChangeState(GameManagerBase gameManager ,  bool touched , GameObject gameObject) 
     {
-        Piece piece = gameObject.GetComponent<Piece>();
+        PieceModel pieceModel = gameObject.GetComponent<PieceModel>();
         ValidBox validBox = gameObject.GetComponent<ValidBox>();
 
-        if (piece != null && piece.playerColor != player) return;
+        if (pieceModel != null && pieceModel.Piece.playerColor != player) return;
 
         if (player == PlayerColor.WHITE &&
             (gameManager.GetBoardStatus() == BOARDSTATUS.WHITE_PLAYER_TURN || gameManager.GetBoardStatus() == BOARDSTATUS.WHITE_PLAYER_TURN_WITH_CHECK)) 
         {
-            if (touched && (piece != null || selectedObject != piece.transform.gameObject))
+            if (touched && (pieceModel != null || selectedObject != pieceModel.transform.gameObject))
             {
                 ClearSelectedPiece();
-                piece.ShowValidMoves();
-                selectedObject = (piece != null) ? piece.transform.gameObject : null;
-                selecetedPiece = piece;
+                pieceModel.ShowValidMoves();
+                selectedObject = (pieceModel != null) ? pieceModel.transform.gameObject : null;
+                selecetedPiece = pieceModel;
                 gameManager.ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_PIECE_SELECT);
             }
-            else if (piece != null)
+            else if (pieceModel != null)
             {
                 ClearSelectedPiece();
-                piece.ShowValidMoves();
+                pieceModel.ShowValidMoves();
             }
         }
         else if(player == PlayerColor.WHITE &&
@@ -52,7 +52,7 @@ public class PlayerBase : MonoBehaviour
             }
             else if (touched && validBox == null) 
             { 
-                if (piece != null && piece != selecetedPiece) 
+                if (pieceModel != null && pieceModel != selecetedPiece) 
                 {
                     ClearSelectedPiece();
                     gameManager.ChangeBoardState(BOARDSTATUS.WHITE_PLAYER_TURN);
@@ -70,7 +70,7 @@ public class PlayerBase : MonoBehaviour
         ObjectPool.instance.InactiveAllActive();
     }
 
-    public void MovePiece(int index , Piece selectedPiece)
+    public void MovePiece(int index , PieceModel selectedPiece)
     {
         ClearSelectedPiece();
         selecetedPiece.ChangePosition(goToIndex);

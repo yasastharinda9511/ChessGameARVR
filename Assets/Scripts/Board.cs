@@ -59,10 +59,10 @@ public class Board : MonoBehaviour
 
         ZHashTable = new ZobristHashTable();
 
-        //this.PieceOrganizeWhite();
-        //this.PieceOrganizeBlack();
-        CustomWhitePieces();
-        CustomBlackPieces();
+        this.PieceOrganizeWhite();
+        this.PieceOrganizeBlack();
+        //CustomWhitePieces();
+        //CustomBlackPieces();
 
         this.ActivePiecesUpdate();
 
@@ -90,88 +90,12 @@ public class Board : MonoBehaviour
 
         for (int i = 0; i < 2; i++) {
             for (int r = 0; r < 8; r++) {
-                if (i == 0)
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.PAWN],this.gameObject.transform);
-                    go.transform.localPosition = offset +  new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhitePawn" + r.ToString();
-                    ChessBoard[ 8*(1 - i) + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.PAWN;
-                    go.GetComponent<Piece>().PieceValue = 10 ;
-                    go.GetComponent<Piece>().AbsPieceValue = 10 ;
-                    go.GetComponent<Piece>().PieceThreatCoef = 1 ;
-                    
-                }
-                else if (i == 1 && (r == 0 || r == 7))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.ROOK],this.gameObject.transform);
-                    go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhiteROOK" + r.ToString();
-                    ChessBoard[8 *(1 - i) + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.ROOK;
-                    go.GetComponent<Piece>().PieceValue = 50;
-                    go.GetComponent<Piece>().AbsPieceValue = 50;
-                    go.GetComponent<Piece>().PieceThreatCoef = 5;
-                }
-                else if (i == 1 && (r == 1 || r == 6))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.KNIGHT], this.gameObject.transform);
-                    go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhiteKNIGHT" + r.ToString();
-                    ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.KNIGHT;
-                    go.GetComponent<Piece>().PieceValue = 30;
-                    go.GetComponent<Piece>().AbsPieceValue = 30;
-                    go.GetComponent<Piece>().PieceThreatCoef = 3;
-                }
-                else if (i == 1 && (r == 2 || r == 5))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.BISHOP], this.gameObject.transform);
-                    go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhiteBISHOP" + r.ToString();
-                    ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.BISHOP;
-                    go.GetComponent<Piece>().PieceValue = 30;
-                    go.GetComponent<Piece>().AbsPieceValue = 30;
-                    go.GetComponent<Piece>().PieceThreatCoef = 3;
-                }
-                else if (i == 1 && r == 3)
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.QUEEN], this.gameObject.transform);
-                    go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhiteQUEEN" + r.ToString();
-                    ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.QUEEN;
-                    go.GetComponent<Piece>().PieceValue = 90;
-                    go.GetComponent<Piece>().AbsPieceValue = 90;
-                    go.GetComponent<Piece>().PieceThreatCoef = 9;
-                }
-                else if (i == 1 && r == 4)
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.KING] , this.gameObject.transform);
-                    go.transform.localPosition = offset + coefficient * new Vector3(BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "WhiteKING" + r.ToString();
-                    ChessBoard[8 * (1 - i) + r] = go.GetComponent<Piece>();
-                    WhiteKingPiece = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.KING;
-                    go.GetComponent<Piece>().PieceValue = 900;
-                    go.GetComponent<Piece>().AbsPieceValue = 900;
-                    go.GetComponent<Piece>().PieceThreatCoef = 4.5f;
-                    this.WhiteKing = go;
-
-                    go.GetComponent<Piece>().Index = 8 * (1 - i) + r;
-                }   
+                if (i == 0) InitPawn(PlayerColor.WHITE, 8 * (1 - i) + r);
+                else if (i == 1 && (r == 0 || r == 7)) InitRook(PlayerColor.WHITE, 8 * (1 - i) + r);
+                else if (i == 1 && (r == 1 || r == 6)) InitKnight(PlayerColor.WHITE, 8 * (1 - i) + r);
+                else if (i == 1 && (r == 2 || r == 5)) InitBishop(PlayerColor.WHITE, 8 * (1 - i) + r);
+                else if (i == 1 && r == 3) InitQueen(PlayerColor.WHITE, 8 * (1 - i) + r);
+                else if (i == 1 && r == 4) InitKing(PlayerColor.WHITE, 8 * (1 - i) + r);  
             }
         }
     }
@@ -186,89 +110,12 @@ public class Board : MonoBehaviour
         
         for (int i = 0; i < 2; i++) {
             for (int r = 0; r < 8; r++) {
-                if (i == 0)
-                {
-                    go = Instantiate(pieceList[(int) PIECENAME.PAWN],this.gameObject.transform);
-                    go.transform.localPosition = offset +  new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    ChessBoard[ 48 + 8 * i + r] = go.GetComponent<Piece>();
-
-                    go.transform.gameObject.name = "BlackPawn" + r.ToString();
-
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.PAWN;
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-                    go.GetComponent<Piece>().PieceValue = -10;
-                    go.GetComponent<Piece>().AbsPieceValue = 10;
-                    go.GetComponent<Piece>().PieceThreatCoef = 1;
-                }
-                else if (i == 1 && (r == 0 || r == 7))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.ROOK],this.gameObject.transform);
-                    go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    go.transform.name = "BlackROOK" + r.ToString();
-                    ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.ROOK;
-                    go.GetComponent<Piece>().PieceValue = -50;
-                    go.GetComponent<Piece>().AbsPieceValue = 50;
-                    go.GetComponent<Piece>().PieceThreatCoef = 5;
-                }
-                else if (i == 1 && (r == 1 || r == 6))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.KNIGHT], this.gameObject.transform);
-                    go.transform.localPosition = offset + new Vector3(-1 *BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    go.transform.name = "BlackKNIGHT" + r.ToString();
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.KNIGHT;
-                    go.GetComponent<Piece>().PieceValue = -30;
-                    go.GetComponent<Piece>().AbsPieceValue = 30;
-                    go.GetComponent<Piece>().PieceThreatCoef = 3;
-                }
-                else if (i == 1 && (r == 2 || r == 5))
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.BISHOP], this.gameObject.transform);
-                    go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    go.transform.name = "BlackBISHOP" + r.ToString();
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.BISHOP;
-                    go.GetComponent<Piece>().PieceValue = -30;
-                    go.GetComponent<Piece>().AbsPieceValue = 30;
-                    go.GetComponent<Piece>().PieceThreatCoef = 3;
-                }
-                else if (i == 1 && r == 3)
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.QUEEN], this.gameObject.transform);
-                    go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    go.transform.name = "BlackQUEEN" + r.ToString();
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.QUEEN;
-                    go.GetComponent<Piece>().PieceValue = -90;
-                    go.GetComponent<Piece>().AbsPieceValue = 90;
-                    go.GetComponent<Piece>().PieceThreatCoef = 9;
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-                }
-                else if (i == 1 && r == 4) 
-                {
-                    go = Instantiate(pieceList[(int)PIECENAME.KING] , this.gameObject.transform);
-                    go.transform.localPosition = offset + new Vector3(-1 * BOARD_CELL_SIZE * i, 0, BOARD_CELL_SIZE * r);
-                    ChessBoard[48 + 8 * i + r] = go.GetComponent<Piece>();
-                    go.transform.name = "BlackKING" + r.ToString();
-                    this.BlackKing = go;
-                    BlackKingPiece = go.GetComponent<Piece>();
-                    go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-                    go.GetComponent<Piece>().pieceName = PIECENAME.KING;
-                    go.GetComponent<Piece>().PieceValue = -900;
-                    go.GetComponent<Piece>().AbsPieceValue = 900;
-                    go.GetComponent<Piece>().PieceThreatCoef = 4.5f;
-                    go.GetComponent<Piece>().Index = 48 + 8 * i + r;
-
-                }
+                if (i == 0) InitPawn(PlayerColor.BLACK, 48 + 8 * i + r);
+                else if (i == 1 && (r == 0 || r == 7)) InitRook(PlayerColor.BLACK, 48 + 8 * i + r);
+                else if (i == 1 && (r == 1 || r == 6)) InitKnight(PlayerColor.BLACK , 48 + 8 * i + r);
+                else if (i == 1 && (r == 2 || r == 5)) InitBishop(PlayerColor.BLACK, 48 + 8 * i + r);
+                else if (i == 1 && r == 3) InitQueen(PlayerColor.BLACK, 48 + 8 * i + r);
+                else if (i == 1 && r == 4) InitKing(PlayerColor.BLACK, 48 + 8 * i + r);
             }
         }
     }
@@ -290,36 +137,26 @@ public class Board : MonoBehaviour
         return transform.TransformPoint(CalculateLocalPosition(1));
     
     }
-    public void OnePieceOrganize(PlayerColor color , PIECENAME piece , int index) {
+    public void OnePieceOrganize(PlayerColor color , PIECENAME piece , int index) 
+    {
 
-        if (ChessBoard[index] != null) ChessBoard[index].Eliminate();
-
-        Debug.Log("pawn to queen is : " + (int) piece);
-
-        GameObject prefab= (color == PlayerColor.WHITE) ? WHITEPIECES[(int)piece] : BLACKPIECES[(int)piece];
-        GameObject go = Instantiate(prefab, this.gameObject.transform);
-        go.transform.localPosition = CalculateLocalPosition(index);
-        go.GetComponent<Piece>().Index = index;
-        go.GetComponent<Piece>().playerColor= color;
-        go.GetComponent<Piece>().pieceName= piece;
-        go.GetComponent<Piece>().Init();
-
-
-        ChessBoard[index] = go.GetComponent<Piece>();
-
-        if (color == PlayerColor.WHITE) WhiteActivePieces.Add(go.GetComponent<Piece>());
-        else BlackActivePieces.Add(go.GetComponent<Piece>());  
+        if (piece == PIECENAME.PAWN) InitPawn(color , index);
+        else if (piece == PIECENAME.ROOK) InitRook(color , index);
+        else if (piece == PIECENAME.KNIGHT) InitKnight(color , index);
+        else if (piece == PIECENAME.BISHOP) InitBishop(color , index);
+        else if (piece == PIECENAME.QUEEN) InitQueen(color , index);
+ 
     }
 
     public void ActivePiecesUpdate()
     {
         this.WhiteActivePieces.Clear();
         this.BlackActivePieces.Clear();
+
+        Debug.Log("Active Pieces Updates");
         foreach (var i in ChessBoard)
         {
             if (i == null) continue;
-
-            Debug.Log(i.pieceName.ToString() + i.playerColor.ToString() );
             if (i.playerColor == PlayerColor.WHITE) this.WhiteActivePieces.Add(i);
             else this.BlackActivePieces.Add(i);
         }
@@ -475,7 +312,6 @@ public class Board : MonoBehaviour
 
     public void AddActivePiece(Piece p)
     {
-
         if (p.playerColor == PlayerColor.WHITE)
         {
             WhiteActivePieces.Add(p);
@@ -695,12 +531,6 @@ public class Board : MonoBehaviour
 
             if (CheckInSameRow(rook.Index, kingIndex))
             {
-                if (rook.Index == kingIndex) 
-                {
-
-                    Debug.Log("Wrong !!!!!" + kingIndex);
-                
-                }
                 int step = (rook.Index - kingIndex);
                 int factor = (int)(step / Mathf.Abs(step));
                 step = Mathf.Abs(step);
@@ -758,7 +588,6 @@ public class Board : MonoBehaviour
             if (CheckLowerDiagonal(bishop.Index, kingIndex)) {
 
                 int step = (bishop.Index - kingIndex) / 7;
-                Debug.Log("Bishop index is :" + bishop.Index + "King Index" + kingIndex) ;
                 int factor = (int)(step / Mathf.Abs(step));
                 step = Mathf.Abs(step);
 
@@ -797,10 +626,7 @@ public class Board : MonoBehaviour
                     return true;
                 
                 }
-
-
             }
-        
         }
 
         return false;
@@ -912,74 +738,116 @@ public class Board : MonoBehaviour
 
     }
 
+    public void InitPawn(PlayerColor playerColor , int index)
+    {
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject pawn = Instantiate(pieceList[(int)PIECENAME.PAWN], this.gameObject.transform);
+        PawnModel pm =  pawn.AddComponent<PawnModel>();
+
+        Piece p = new Pawn(playerColor, index, pm);
+
+        pawn.GetComponent<PawnModel>().Piece = p;
+        pawn.GetComponent<PawnModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+    }
+
+    public void InitRook(PlayerColor playerColor, int index)
+    {
+
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject rook = Instantiate(pieceList[(int)PIECENAME.ROOK], this.gameObject.transform);
+        RookModel rm = rook.AddComponent<RookModel>();
+
+        Piece p = new Rook(playerColor, index, rm);
+
+        rook.GetComponent<RookModel>().Piece = p;
+        rook.GetComponent<RookModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+
+    }
+    public void InitBishop(PlayerColor playerColor, int index)
+    {
+
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject bishop = Instantiate(pieceList[(int)PIECENAME.BISHOP], this.gameObject.transform);
+        BishopModel bm  =bishop.AddComponent<BishopModel>();
+
+        Piece p = new Bishop(playerColor, index, bm);
+
+        bishop.GetComponent<BishopModel>().Piece = p;
+        bishop.GetComponent<BishopModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+
+    }
+    public void InitKnight(PlayerColor playerColor, int index)
+    {
+
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject knight = Instantiate(pieceList[(int)PIECENAME.KNIGHT], this.gameObject.transform);
+        KnightModel km = knight.AddComponent<KnightModel>();
+
+        Piece p = new Knight(playerColor, index, km);
+
+        knight.GetComponent<KnightModel>().Piece = p;
+        knight.GetComponent<KnightModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+
+    }
+    public void InitKing(PlayerColor playerColor, int index)
+    {
+
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject knight = Instantiate(pieceList[(int)PIECENAME.KING], this.gameObject.transform);
+        KingModel km = knight.AddComponent<KingModel>();
+
+        Piece p = new King(playerColor, index , km);
+
+        knight.GetComponent<KingModel>().Piece = p;
+        knight.GetComponent<KingModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+
+        if (playerColor == PlayerColor.WHITE) WhiteKingPiece = p;
+        else BlackKingPiece = p;
+
+    }
+
+    public void InitQueen(PlayerColor playerColor, int index)
+    {
+        List<GameObject> pieceList = (playerColor == PlayerColor.WHITE) ? WHITEPIECES : BLACKPIECES;
+
+        GameObject queen = Instantiate(pieceList[(int)PIECENAME.QUEEN], this.gameObject.transform);
+        QueenModel qm = queen.AddComponent<QueenModel>();
+
+        Piece p = new Queen(playerColor, index , qm);
+
+        queen.GetComponent<QueenModel>().Piece = p;
+        queen.GetComponent<QueenModel>().SetLocalPosition(index);
+        ChessBoard[index] = p;
+    }
+
+
+
     #region DebugBoard
 
     public void CustomWhitePieces() 
     {
         GameObject go;
-
-
-        go = Instantiate(WHITEPIECES[(int)PIECENAME.PAWN], this.gameObject.transform);
-        go.transform.localPosition = CalculateLocalPosition(0);
-        go.transform.name = "WhitePawn" + 0.ToString();
-        ChessBoard[0] = go.GetComponent<Piece>();
-        go.GetComponent<Piece>().Index = 0 ;
-        go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-        go.GetComponent<Piece>().pieceName = PIECENAME.PAWN;
-        go.GetComponent<Piece>().PieceValue = 10;
-        go.GetComponent<Piece>().AbsPieceValue = 10;
-        go.GetComponent<Piece>().PieceThreatCoef = 1;
-
-
-        go = Instantiate(WHITEPIECES[(int)PIECENAME.KING], this.gameObject.transform);
-        go.transform.localPosition = CalculateLocalPosition(2); 
-        go.transform.name = "WhiteKING";
-        ChessBoard[2] = go.GetComponent<Piece>();
-        WhiteKingPiece = go.GetComponent<Piece>();
-        go.GetComponent<Piece>().playerColor = PlayerColor.WHITE;
-        go.GetComponent<Piece>().pieceName = PIECENAME.KING;
-        go.GetComponent<Piece>().PieceValue = 900;
-        go.GetComponent<Piece>().AbsPieceValue = 900;
-        go.GetComponent<Piece>().PieceThreatCoef = 4.5f;
-        this.WhiteKing = go;
-
-        go.GetComponent<Piece>().Index = 2;
-
+        InitRook(PlayerColor.WHITE ,8);
+        InitKing(PlayerColor.WHITE ,2);
     }
 
     public void CustomBlackPieces()
     {
-        GameObject go;
-        go = Instantiate(BLACKPIECES[(int)PIECENAME.KING], this.gameObject.transform);
-        go.transform.localPosition = CalculateLocalPosition(62);
-        ChessBoard[62] = go.GetComponent<Piece>();
-        go.transform.name = "BlackKING";
-        this.BlackKing = go;
-        BlackKingPiece = go.GetComponent<Piece>();
-        go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-        go.GetComponent<Piece>().pieceName = PIECENAME.KING;
-        go.GetComponent<Piece>().PieceValue = -900;
-        go.GetComponent<Piece>().AbsPieceValue = 900;
-        go.GetComponent<Piece>().PieceThreatCoef = 4.5f;
-        go.GetComponent<Piece>().Index = 62;
 
-
-        go = Instantiate(BLACKPIECES[(int)PIECENAME.PAWN], this.gameObject.transform);
-        go.transform.localPosition = CalculateLocalPosition(15);
-        go.transform.name = "BalckPawn" + 0.ToString();
-        ChessBoard[15] = go.GetComponent<Piece>();
-        go.GetComponent<Piece>().Index = 15;
-        go.GetComponent<Piece>().playerColor = PlayerColor.BLACK;
-        go.GetComponent<Piece>().pieceName = PIECENAME.PAWN;
-        go.GetComponent<Piece>().PieceValue = 10;
-        go.GetComponent<Piece>().AbsPieceValue = 10;
-        go.GetComponent<Piece>().PieceThreatCoef = 1;
-
+        InitPawn(PlayerColor.BLACK, 13);
+        InitKing(PlayerColor.BLACK, 62);
 
     }
-
-
-
     #endregion
 
 

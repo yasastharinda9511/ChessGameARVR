@@ -12,46 +12,14 @@ public class Pawn : Piece
         this.PieceThreatCoef = 1;
 
     }
-
-    public override void ChangePosition(int index) 
+    public Pawn(PlayerColor playerColor, int index, PawnModel pawnModel) : base(playerColor, index , pawnModel )
     {
 
-        base.ChangePosition(index);
+        this.pieceName = PIECENAME.PAWN;
+        this.PieceValue = (playerColor == PlayerColor.WHITE) ? 10 : -10;
+        this.AbsPieceValue = 10;
+        this.PieceThreatCoef = 1;
 
-        if ((((int)(index / 8) == 7 && this.playerColor == PlayerColor.WHITE)) ||
-            (((int)(index / 8) == 0 && this.playerColor == PlayerColor.BLACK))
-            )
-        {
-
-        }
-
-        MoveCoroute = false;
-    }
-
-    public override IEnumerator Move(int index)
-    {
-        Vector3 forward =  CalculateLocalPosition(index) - this.transform.localPosition;
-        float cof;
-
-        while (Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index))> 0.01f &&
-               Vector3.Dot(CalculateLocalPosition(index) - this.transform.localPosition, forward) >= 0  ) 
-        {
-
-            cof = Vector3.Magnitude(this.transform.localPosition - CalculateLocalPosition(index));
-            cof = (cof > 1.5f) ? 1.5f : cof;
-            this.transform.Translate(forward * Time.deltaTime * cof * speed);
-            yield return null; 
-
-        }
-
-        this.transform.localPosition = CalculateLocalPosition(index);
-        MoveCoroute = false;
-        yield return null;
-    }
-
-    public override void SelectChangeMaterial()
-    {
-        throw new System.NotImplementedException();
     }
     void CheckSingleDoubleUpWhite() {
 
@@ -60,16 +28,14 @@ public class Pawn : Piece
 
             if ((int)(Index + 8) / 8 == 7)
             {
-
-                AddIndex(Index + 8, MOVETYPE.PAWN_PROMOTION);
-
-            }
-            else {
-
-                AddIndex(Index + 8, MOVETYPE.FREE);
+                AddMove(new PawnPromotionMove(Index, Index + 8, PIECENAME.ROOK));
+                AddMove(new PawnPromotionMove(Index, Index + 8, PIECENAME.BISHOP));
+                AddMove(new PawnPromotionMove(Index, Index + 8, PIECENAME.KNIGHT));
+                AddMove(new PawnPromotionMove(Index, Index + 8, PIECENAME.QUEEN));
 
             }
-            
+            else AddMove(new FreeMove(Index , Index + 8));
+       
             if (isFirstMove) DoubleUpWhite();
 
         }
@@ -85,14 +51,13 @@ public class Pawn : Piece
             if ((int)((Index - 8) / 8) == 0)
             {
 
-                AddIndex(Index - 8, MOVETYPE.PAWN_PROMOTION);
+                AddMove(new PawnPromotionMove(Index, Index - 8, PIECENAME.ROOK));
+                AddMove(new PawnPromotionMove(Index, Index - 8, PIECENAME.BISHOP));
+                AddMove(new PawnPromotionMove(Index, Index - 8, PIECENAME.KNIGHT));
+                AddMove(new PawnPromotionMove(Index, Index - 8, PIECENAME.QUEEN));
 
             }
-            else {
-
-                AddIndex(Index - 8, MOVETYPE.FREE);
-
-            }
+            else AddMove(new FreeMove(Index, Index - 8));
             
             if (isFirstMove) DoubleUpBlack();
 
@@ -102,21 +67,13 @@ public class Pawn : Piece
 
     void DoubleUpWhite() {
 
-        if (Index + 16 <= 63 && Board.Instance.ChessBoard[Index + 16] == null) {
-
-            AddIndex(Index + 16, MOVETYPE.FREE);
-        } 
+        if (Index + 16 <= 63 && Board.Instance.ChessBoard[Index + 16] == null) AddMove(new FreeMove(Index, Index + 16)); 
     
     }
     void DoubleUpBlack() {
 
-        if (Index - 16 >= 0 && Board.Instance.ChessBoard[Index - 16] == null) {
-
-            AddIndex(Index - 16 , MOVETYPE.FREE);
-
-        }
-        
-    
+        if (Index - 16 >= 0 && Board.Instance.ChessBoard[Index - 16] == null) AddMove(new FreeMove(Index, Index - 16));
+     
     }
 
     void checkEleminateCrossMoveWhite()
@@ -128,7 +85,7 @@ public class Pawn : Piece
             Board.Instance.ChessBoard[Index + 7].playerColor != playerColor 
             )
         {
-            AddIndex(Index + 7 , MOVETYPE.ATTACKING);
+            AddMove(new AttackMove(Index, Index + 7));
         }
         //ValidMoves.Add(Index + 7);
         if (Index + 9 <= 63 &&
@@ -137,7 +94,7 @@ public class Pawn : Piece
             Board.Instance.ChessBoard[Index + 9].playerColor != playerColor
             )
         {
-            AddIndex(Index + 9 , MOVETYPE.ATTACKING);
+            AddMove(new AttackMove(Index, Index + 9));
         }
 
     }
@@ -149,8 +106,7 @@ public class Pawn : Piece
             (int)((Index - 7) / 8) + 1 == (int)(Index / 8) &&
              Board.Instance.ChessBoard[Index - 7].playerColor != this.playerColor)
         {
-
-            AddIndex(Index - 7 , MOVETYPE.ATTACKING);
+            AddMove(new AttackMove(Index, Index -7));
 
         }
         //ValidMoves.Add(Index - 7);
@@ -159,7 +115,7 @@ public class Pawn : Piece
             (int)((Index - 9) / 8) + 1 == (int)(Index / 8) &&
             Board.Instance.ChessBoard[Index - 9].playerColor != this.playerColor)
         {
-            AddIndex(Index - 9 , MOVETYPE.ATTACKING);
+            AddMove(new AttackMove(Index, Index - 9));
         }
                 //ValidMoves.Add(Index - 9);
 

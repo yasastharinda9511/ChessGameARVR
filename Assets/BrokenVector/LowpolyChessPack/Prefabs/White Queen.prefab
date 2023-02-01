@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 3313976}
   - component: {fileID: 2324324}
   - component: {fileID: 6463976}
-  - component: {fileID: 6332168141628163350}
-  - component: {fileID: 6004444697323008753}
   m_Layer: 0
   m_Name: White Queen
   m_TagString: Piece
@@ -31,6 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -54,6 +53,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -98,32 +98,3 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 3d88c9550087ec84c95090f5be583f60, type: 3}
---- !u!114 &6332168141628163350
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 103078}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad902607a94b81b4b8063b6df93f5e65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerColor: 0
-  pieceName: 4
-  directions: 04000000
-  ValidMoves: 
---- !u!114 &6004444697323008753
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 103078}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 806923fb6e0216d4d8b0008377951c40, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates: []

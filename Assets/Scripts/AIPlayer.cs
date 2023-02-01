@@ -194,10 +194,9 @@ public class AIPlayer : MonoBehaviour
         findInsideCount = 0;
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        // the code that you want to measure comes here
         ulong hash = Board.Instance.GetHashValue();
 
-        threadMove = GetAIMove(this.AIPlayerColor, 3 , float.MinValue, float.MaxValue);
+        threadMove = GetAIMove(this.AIPlayerColor, 2 , float.MinValue, float.MaxValue);
 
         if (threadMove.Pawnpromotion) 
         {
@@ -209,7 +208,7 @@ public class AIPlayer : MonoBehaviour
         watch.Stop();
         if (hash == Board.Instance.GetHashValue()) Debug.Log("Same Hash value value");
 
-        Board.Instance.ActivePiecesUpdate();
+        //Board.Instance.ActivePiecesUpdate();
 
         if (AIPlayer.Instance.AIPlayerColor == PlayerColor.WHITE)
         {
@@ -224,8 +223,6 @@ public class AIPlayer : MonoBehaviour
         }
 
         Board.Instance.UpdateValidMoves();
-        Debug.Log(Board.Instance.PrintBoardNow());
-
         DebugEvaluateBoard(Board.Instance.ChessBoard);
 
     }
@@ -289,24 +286,9 @@ public class AIPlayer : MonoBehaviour
 
         PIECENAME[] promotedPiece = new PIECENAME[4] { PIECENAME.QUEEN, PIECENAME.ROOK, PIECENAME.KNIGHT, PIECENAME.BISHOP };
 
-        foreach (Piece p in ActivePieces) {
-
-            foreach (Moves i in p.ValidMoves.ToArray())
-            {
-                if (i.MoveType == MOVETYPE.PAWN_PROMOTION)
-                {
-                    foreach (PIECENAME pro in promotedPiece) {
-
-                        moveList.Add(new Moves(source : i.Source , destination: i.Destination , moveType : i.MoveType , promotedPiece: pro));
-
-                    }
-                    continue;
-
-                }
-                moveList.Add(i);
-
-            }
-
+        foreach (Piece p in ActivePieces) 
+        {
+            foreach (Moves i in p.ValidMoves.ToArray()) moveList.Add(i);
         }
 
         List<Moves> orderedMoveList;
@@ -316,9 +298,8 @@ public class AIPlayer : MonoBehaviour
 
     }
 
-    MoveEvaluation GetAIMove(PlayerColor playerTurn, int depth, float alpha, float beta ) {
-
-        BoardUndoNode undoMove ;
+    public MoveEvaluation GetAIMove(PlayerColor playerTurn, int depth, float alpha, float beta ) 
+    {
 
         List<Moves> Validmoves = new List<Moves>();
 
@@ -357,7 +338,7 @@ public class AIPlayer : MonoBehaviour
             foreach (Moves i in Validmoves)
             {
                 ulong prevHash = Board.Instance.GetHashValue();
-                undoMove = DoMove(i, playerTurn);
+                i.DoMove();
 
                 move = GetAIMove(opponentColor, depth - 1, alpha, beta);
 
@@ -366,19 +347,18 @@ public class AIPlayer : MonoBehaviour
 
                 if (maxValue == move.EvaluationValue)
                 {
-                    if(i.MoveType == MOVETYPE.PAWN_PROMOTION) node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination , i.PromotedPiece);
+                    if (i.MoveType == MOVETYPE.PAWN_PROMOTION) 
+                    { 
+                        PawnPromotionMove p = (PawnPromotionMove)i;
+                        node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination, p.PromotedPieceName);
+                    } 
                     else node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
 
                 }
 
-                UndoMove(i, undoMove);
+                i.UndoMove();
 
-                if (beta <= alpha)
-                {
-
-                    break;
-
-                }
+                if (beta <= alpha) break;
 
             }
 
@@ -387,11 +367,9 @@ public class AIPlayer : MonoBehaviour
 
             foreach (Moves i in Validmoves)
             {
-                if (i.MoveType == MOVETYPE.PAWN_PROMOTION && i.PromotedPiece == PIECENAME.ROOK) continue;
-                Debug.Log(depth + " " + i.MoveType.ToString() + " " +i.Source.ToString() + " " +i.Destination.ToString());
                 ulong prevHash = Board.Instance.GetHashValue();
 
-                undoMove = DoMove(i, playerTurn);
+                i.DoMove();
 
                 move = GetAIMove(opponentColor, depth - 1, alpha, beta);
 
@@ -401,288 +379,23 @@ public class AIPlayer : MonoBehaviour
                 if (minValue == move.EvaluationValue)
                 {
 
-                    if (i.MoveType == MOVETYPE.PAWN_PROMOTION) node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination, i.PromotedPiece);
+                    if (i.MoveType == MOVETYPE.PAWN_PROMOTION)
+                    {
+                        PawnPromotionMove p = (PawnPromotionMove)i;
+                        node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination, p.PromotedPieceName);
+                    }
                     else node = new MoveEvaluation(move.EvaluationValue, i.Source, i.Destination);
 
                 }
 
-                UndoMove(i, undoMove);
+                i.UndoMove();
 
-                if (beta <= alpha)
-                {
-
-                    break;
-
-                }
-
+                if (beta <= alpha) break;
             }
 
         }
 
         return node;
-
-    }
-
-    BoardUndoNode DoMove (Moves move , PlayerColor playerTurn)
-    {
-
-        Piece eliminatedPiece = null;
-        Piece promotedPawn = null ;
-        Piece promotedPiece = null;
-        bool movePieceOneIsFirstMove = false;
-        bool movePieceTwoIsFirstMove = false;
-
-        PlayerColor opponent = (playerTurn == PlayerColor.WHITE) ? PlayerColor.BLACK : PlayerColor.WHITE;
-
-        if (move.MoveType == MOVETYPE.PAWN_PROMOTION)
-        {
-            if (Board.Instance.ChessBoard[move.Destination] != null)
-            {
-
-                eliminatedPiece = Board.Instance.ChessBoard[move.Destination];
-                Board.Instance.RemoveActivePiece(eliminatedPiece);
-
-            }
-
-            promotedPawn = Board.Instance.ChessBoard[move.Source];
-            Board.Instance.ChessBoard[move.Source] = null;
-            Board.Instance.RemoveActivePiece(promotedPawn);
-
-            if (move.PromotedPiece == PIECENAME.QUEEN)
-            {
-                Debug.Log("Queen Promote !!!");
-                promotedPiece = new Queen(playerTurn, move.Destination);
-
-            }
-            else if (move.PromotedPiece == PIECENAME.ROOK)
-            {
-                Debug.Log("Rook Promote !!!");
-                promotedPiece = new Rook(playerTurn, move.Destination);
-
-            }
-            else if (move.PromotedPiece == PIECENAME.KNIGHT)
-            {
-                Debug.Log("Knight Promote !!!");
-                promotedPiece = new Knight(playerTurn, move.Destination);
-
-            } else if (move.PromotedPiece == PIECENAME.BISHOP)
-            {
-                Debug.Log("Bihop Promote !!!");
-                promotedPiece = new Bishop(playerTurn , move.Destination);
-            
-            }
-            Board.Instance.ChessBoard[move.Destination] = promotedPiece;
-            Board.Instance.AddActivePiece(promotedPiece);
-            Debug.Log(Board.Instance.PrintBoard());
-
-        }
-        else if (move.MoveType == MOVETYPE.FREE)
-        {
-
-            Board.Instance.ChessBoard[move.Destination] = Board.Instance.ChessBoard[move.Source];
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[move.Destination].isFirstMove;
-
-            Board.Instance.ChessBoard[move.Destination].isFirstMove = false;
-
-            Board.Instance.ChessBoard[move.Destination].Index = move.Destination;
-            Board.Instance.ChessBoard[move.Source] = null;
-
-        }
-        else if (move.MoveType == MOVETYPE.ATTACKING)
-        {
-            eliminatedPiece = Board.Instance.ChessBoard[move.Destination];
-            Board.Instance.RemoveActivePiece(eliminatedPiece);
-
-            Board.Instance.ChessBoard[move.Destination] = Board.Instance.ChessBoard[move.Source];
-
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[move.Destination].isFirstMove; // First Piece queen
-
-            Board.Instance.ChessBoard[move.Destination].isFirstMove = false;
-
-
-            Board.Instance.ChessBoard[move.Destination].Index = move.Destination;
-            Board.Instance.ChessBoard[move.Source] = null;
-
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_BLACK_LEFT)
-        {
-            Board.Instance.ChessBoard[58] = Board.Instance.ChessBoard[60];
-            Board.Instance.ChessBoard[58].Index = 58;
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[58].isFirstMove;
-            Board.Instance.ChessBoard[58].isFirstMove = false;
-
-            Board.Instance.ChessBoard[60] = null;
-
-            Board.Instance.ChessBoard[59] = Board.Instance.ChessBoard[56];
-            Board.Instance.ChessBoard[59].Index = 59;
-            movePieceTwoIsFirstMove = Board.Instance.ChessBoard[59].isFirstMove;
-            Board.Instance.ChessBoard[59].isFirstMove = false;
-
-            Board.Instance.ChessBoard[56] = null;
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_BLACK_RIGHT)
-        {
-            Board.Instance.ChessBoard[62] = Board.Instance.ChessBoard[60];
-            Board.Instance.ChessBoard[62].Index = 62;
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[62].isFirstMove;
-            Board.Instance.ChessBoard[62].isFirstMove = false;
-
-            Board.Instance.ChessBoard[60] = null;
-
-            Board.Instance.ChessBoard[61] = Board.Instance.ChessBoard[63];
-            Board.Instance.ChessBoard[61].Index = 61;
-            movePieceTwoIsFirstMove = Board.Instance.ChessBoard[61].isFirstMove;
-            Board.Instance.ChessBoard[61].isFirstMove = false;
-
-            Board.Instance.ChessBoard[61] = null;
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_WHITE_LEFT)
-        {
-            Board.Instance.ChessBoard[2] = Board.Instance.ChessBoard[4];
-            Board.Instance.ChessBoard[2].Index = 2;
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[2].isFirstMove;
-            Board.Instance.ChessBoard[2].isFirstMove = false;
-
-            Board.Instance.ChessBoard[4] = null;
-
-            Board.Instance.ChessBoard[3] = Board.Instance.ChessBoard[0];
-            Board.Instance.ChessBoard[3].Index = 3;
-            movePieceTwoIsFirstMove = Board.Instance.ChessBoard[3].isFirstMove;
-            Board.Instance.ChessBoard[3].isFirstMove = false;
-
-            Board.Instance.ChessBoard[0] = null;
-
-        } else if (move.MoveType == MOVETYPE.KING_CASTLING_WHITE_RIGHT) 
-        {
-
-            Board.Instance.ChessBoard[6] = Board.Instance.ChessBoard[4];
-            Board.Instance.ChessBoard[6].Index = 6;
-            movePieceOneIsFirstMove = Board.Instance.ChessBoard[6].isFirstMove;
-            Board.Instance.ChessBoard[6].isFirstMove = false;
-
-            Board.Instance.ChessBoard[4] = null;
-
-            Board.Instance.ChessBoard[5] = Board.Instance.ChessBoard[7];
-            Board.Instance.ChessBoard[5].Index = 5;
-            movePieceTwoIsFirstMove = Board.Instance.ChessBoard[5].isFirstMove;
-            Board.Instance.ChessBoard[5].isFirstMove = false;
-
-            Board.Instance.ChessBoard[7] = null;
-        }
-
-        return new BoardUndoNode(undoMove : move , eliminatedPiece : eliminatedPiece , promotedPawnPiece : promotedPawn, movePieceOneIsFirstMove : movePieceOneIsFirstMove , movePieceTwoIsFirstMove : movePieceTwoIsFirstMove );
-
-    }
-
-    void UndoMove(Moves move , BoardUndoNode undoNode) 
-    {
-
-        if (move.MoveType == MOVETYPE.PAWN_PROMOTION)
-        {
-
-            Board.Instance.ChessBoard[move.Source] = undoNode.PromotedPawnPiece;
-            if (undoNode.EliminatedPiece != null)
-            {
-
-                Board.Instance.AddActivePiece(undoNode.EliminatedPiece);
-                Board.Instance.RemoveActivePiece(Board.Instance.ChessBoard[move.Destination]);
-
-            }
-            List<Piece> activePieces = (Board.Instance.ChessBoard[move.Destination].playerColor == PlayerColor.WHITE) ?  Board.Instance.WhiteActivePieces : Board.Instance.BlackActivePieces;
-            activePieces.Remove(Board.Instance.ChessBoard[move.Destination]);
-            Board.Instance.ChessBoard[move.Source] = undoNode.PromotedPawnPiece;
-            activePieces.Add(undoNode.PromotedPawnPiece);
-            Board.Instance.ChessBoard[move.Destination] = undoNode.EliminatedPiece;
-
-        }
-        else if (move.MoveType == MOVETYPE.FREE)
-        {
-
-            Board.Instance.ChessBoard[move.Source] = Board.Instance.ChessBoard[move.Destination];
-            Board.Instance.ChessBoard[move.Source].Index = move.Source;
-            Board.Instance.ChessBoard[move.Destination] = undoNode.EliminatedPiece;
-            Board.Instance.ChessBoard[move.Source].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-        }
-        else if (move.MoveType == MOVETYPE.ATTACKING)
-        {
-
-            Board.Instance.AddActivePiece(undoNode.EliminatedPiece);
-
-            Board.Instance.ChessBoard[move.Source] = Board.Instance.ChessBoard[move.Destination];
-            Board.Instance.ChessBoard[move.Source].Index = move.Source;
-            Board.Instance.ChessBoard[move.Source].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-            Board.Instance.ChessBoard[move.Destination] = undoNode.EliminatedPiece;
-
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_BLACK_LEFT)
-        {
-
-            Board.Instance.ChessBoard[60] = Board.Instance.ChessBoard[58];
-            Board.Instance.ChessBoard[60].Index = 60;
-            Board.Instance.ChessBoard[60].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-            Board.Instance.ChessBoard[58] = null;
-
-            Board.Instance.ChessBoard[56] = Board.Instance.ChessBoard[59];
-            Board.Instance.ChessBoard[56].Index = 60;
-            Board.Instance.ChessBoard[56].isFirstMove = undoNode.MovePieceTwoIsFirstMove;
-
-            Board.Instance.ChessBoard[59] = null;
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_BLACK_RIGHT)
-        {
-
-            Board.Instance.ChessBoard[60] = Board.Instance.ChessBoard[62];
-            Board.Instance.ChessBoard[60].Index = 60;
-            Board.Instance.ChessBoard[60].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-            Board.Instance.ChessBoard[62] = null;
-
-            Board.Instance.ChessBoard[63] = Board.Instance.ChessBoard[61];
-            Board.Instance.ChessBoard[63].Index = 63;
-            Board.Instance.ChessBoard[63].isFirstMove = undoNode.MovePieceTwoIsFirstMove;
-
-            Board.Instance.ChessBoard[61] = null;
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_WHITE_LEFT)
-        {
-
-            Board.Instance.ChessBoard[4] = Board.Instance.ChessBoard[2];
-            Board.Instance.ChessBoard[4].Index = 4;
-            Board.Instance.ChessBoard[4].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-            Board.Instance.ChessBoard[2] = null;
-
-            Board.Instance.ChessBoard[0] = Board.Instance.ChessBoard[3];
-            Board.Instance.ChessBoard[0].Index = 0;
-            Board.Instance.ChessBoard[0].isFirstMove = undoNode.MovePieceTwoIsFirstMove;
-
-            Board.Instance.ChessBoard[3] = null;
-
-        }
-        else if (move.MoveType == MOVETYPE.KING_CASTLING_WHITE_RIGHT) 
-        {
-
-            Board.Instance.ChessBoard[4] = Board.Instance.ChessBoard[6];
-            Board.Instance.ChessBoard[4].Index = 4;
-            Board.Instance.ChessBoard[4].isFirstMove = undoNode.MovePieceOneIsFirstMove;
-
-            Board.Instance.ChessBoard[6] = null; 
-
-            Board.Instance.ChessBoard[7] = Board.Instance.ChessBoard[5];
-            Board.Instance.ChessBoard[7].Index = 7;
-            Board.Instance.ChessBoard[7].isFirstMove = undoNode.MovePieceTwoIsFirstMove;
-
-            Board.Instance.ChessBoard[5] = null;
-        
-        }
 
     }
 

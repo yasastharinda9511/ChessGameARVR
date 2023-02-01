@@ -167,7 +167,7 @@ public class GameManagerBase : MonoBehaviour
     {
         UpdateActivePiece();
         UpdateValidMoves();
-        int kingIndex = Board.Instance.WhiteKing.GetComponent<Piece>().Index;
+        int kingIndex = Board.Instance.WhiteKingPiece.Index;
 
         if (Board.Instance.IsCheckWhitePlayer()) {
 
